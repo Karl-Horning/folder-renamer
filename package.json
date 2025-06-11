@@ -12,7 +12,7 @@
   },
   "license": "MIT",
   "author": "Karl Horning",
-  "type": "commonjs",
+  "type": "module",
   "main": "app.js",
   "scripts": {
     "start": "node ./src/app.js",

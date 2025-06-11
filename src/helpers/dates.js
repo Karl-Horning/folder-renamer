@@ -85,4 +85,4 @@ function normaliseDates(name) {
     return name;
 }
 
-module.exports = { normaliseDates };
+export { normaliseDates };

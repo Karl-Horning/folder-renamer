@@ -1,7 +1,9 @@
-require("dotenv").config();
-const fs = require("fs");
-const path = require("path");
-const { normaliseDates } = require("./helpers/dates");
+import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
+import { normaliseDates } from "./helpers/dates.js";
+
+dotenv.config();
 
 const directoryPath = process.env.DIRECTORY_PATH;
 
