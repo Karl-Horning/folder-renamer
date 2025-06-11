@@ -1,78 +1,13 @@
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
+const { normaliseDates } = require("./helpers/dates");
 
 const directoryPath = process.env.DIRECTORY_PATH;
 
 if (!directoryPath) {
     console.error("Error: DIRECTORY_PATH not set in .env");
     process.exit(1);
-}
-
-// Helper to pad numbers
-function pad(num) {
-    return String(parseInt(num, 10)).padStart(2, "0");
-}
-
-// Month lookup for written dates
-const monthMap = {
-    Jan: "01",
-    Feb: "02",
-    Mar: "03",
-    Apr: "04",
-    May: "05",
-    Jun: "06",
-    Jul: "07",
-    Aug: "08",
-    Sep: "09",
-    Oct: "10",
-    Nov: "11",
-    Dec: "12",
-};
-
-// Replace slashed or written date strings with (YYYY-MM-DD)
-function normaliseDates(name) {
-    // 1. Convert slashed dates like 10⁄26⁄19 or 10/26/19 → (2019-10-26)
-    name = name.replace(
-        /(\d{1,2})[\/⁄](\d{1,2})[\/⁄](\d{2})/g,
-        (_, m, d, y) => {
-            return `(${2000 + parseInt(y)}-${pad(m)}-${pad(d)})`;
-        }
-    );
-
-    // 2. Convert written dates like "Nov 27, 2018" or "Jun 11th, 2015" → (2018-11-27)
-    name = name.replace(
-        /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[ .]+(\d{1,2})(?:st|nd|rd|th)?,[ ]*(\d{4})/gi,
-        (_, mon, day, year) => {
-            const month = monthMap[mon.slice(0, 3)];
-            return `(${year}-${month}-${pad(day)})`;
-        }
-    );
-
-    // 3. Convert MM-DD-YYYY (e.g. 10-19-2018) → (2018-10-19)
-    name = name.replace(/\b(\d{1,2})-(\d{1,2})-(\d{4})\b/g, (_, m, d, y) => {
-        return `(${y}-${pad(m)}-${pad(d)})`;
-    });
-
-    // 4. Convert wrongly formatted bracketed dates like (12-07-2020) → (2020-07-12)
-    name = name.replace(/\((\d{1,2})-(\d{1,2})-(\d{4})\)/g, (_, d, m, y) => {
-        return `(${y}-${pad(m)}-${pad(d)})`;
-    });
-
-    // 4.5 Convert dotted European-style dates like (07.11.2019) → (2019-11-07)
-    name = name.replace(/\((\d{1,2})\.(\d{1,2})\.(\d{4})\)/g, (_, d, m, y) => {
-        return `(${y}-${pad(m)}-${pad(d)})`;
-    });
-
-    // 5. Wrap bare ISO-style YYYY-MM-DD in brackets, unless already wrapped
-    name = name.replace(
-        /(?<!\()\b(\d{4})-(\d{2})-(\d{2})\b(?!\))/g,
-        (_, y, m, d) => {
-            return `(${y}-${m}-${d})`;
-        }
-    );
-
-    return name;
 }
 
 fs.readdir(directoryPath, { withFileTypes: true }, (err, entries) => {
