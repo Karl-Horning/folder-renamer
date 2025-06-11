@@ -1,66 +1,66 @@
 import dotenv from "dotenv";
-import fs from "fs";
+import fs from "fs/promises";
 import path from "path";
-import { applyReplacePatterns } from "./helpers/replacePatterns.js";
-import { normaliseDates } from "./helpers/dates.js";
-import {
-    moveImageCountAndDate,
-    cleanupPunctuation,
-    movePrefixesToEnd,
-} from "./helpers/text.js";
+import { fileURLToPath } from "url";
 
+import { validateEnv } from "./helpers/validateEnv.js";
+import { loadJSON } from "./helpers/loadJSON.js";
+import { transformName } from "./helpers/transformName.js";
+
+// Load environment variables from .env file
 dotenv.config();
 
-const directoryPath = process.env.DIRECTORY_PATH;
-const prefixesPath = path.resolve(
-    process.cwd(),
-    "src",
-    "data",
-    "prefixes.json"
-);
-const prefixesToMove = JSON.parse(fs.readFileSync(prefixesPath, "utf8"));
+// Get __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-if (!directoryPath) {
-    console.error("Error: DIRECTORY_PATH not set in .env");
-    process.exit(1);
-}
+/**
+ * Main entry point for renaming folders based on configured patterns and rules.
+ */
+async function main() {
+    // Validate that required environment variables are set
+    validateEnv(["DIRECTORY_PATH"]);
 
-fs.readdir(directoryPath, { withFileTypes: true }, (err, entries) => {
-    if (err) {
-        return console.error("Failed to read directory:", err);
-    }
+    // Resolve necessary paths
+    const directoryPath = process.env.DIRECTORY_PATH;
+    const prefixesPath = path.join(__dirname, "data", "prefixes.json");
 
-    entries.forEach((entry) => {
-        if (entry.isDirectory()) {
+    // Load prefixes list
+    const prefixesToMove = await loadJSON(prefixesPath);
+
+    try {
+        // Read the contents of the target directory
+        const entries = await fs.readdir(directoryPath, {
+            withFileTypes: true,
+        });
+
+        for (const entry of entries) {
+            // Only rename directories
+            if (!entry.isDirectory()) continue;
+
             const oldName = entry.name;
-            let newName = applyReplacePatterns(oldName);
+            const newName = transformName(oldName, prefixesToMove);
 
-            // 🔄 Normalise image count patterns to (x###)
-            newName = newName.replace(
-                /\b(\d{2,5})(?: ?(pics?|photos?|images?)|[xX])\b|\b[xX](\d{2,5})\b/gi,
-                (_, num1, _group2, num2) => `(x${num1 || num2})`
-            );
-
-            newName = normaliseDates(newName);
-            newName = moveImageCountAndDate(newName);
-            newName = cleanupPunctuation(newName);
-            newName = movePrefixesToEnd(newName, prefixesToMove);
-
+            // If the name has changed, rename the directory
             if (newName !== oldName) {
                 const oldPath = path.join(directoryPath, oldName);
                 const newPath = path.join(directoryPath, newName);
 
-                fs.rename(oldPath, newPath, (renameErr) => {
-                    if (renameErr) {
-                        console.error(
-                            `Error renaming '${oldName}' to '${newName}':`,
-                            renameErr
-                        );
-                    } else {
-                        console.log(`Renamed: '${oldName}' → '${newName}'`);
-                    }
-                });
+                try {
+                    await fs.rename(oldPath, newPath);
+                    console.log(`Renamed: '${oldName}' → '${newName}'`);
+                } catch (renameErr) {
+                    console.error(
+                        `Error renaming '${oldName}' to '${newName}':`,
+                        renameErr
+                    );
+                }
             }
         }
-    });
-});
+    } catch (err) {
+        console.error("Failed to process directory:", err);
+    }
+}
+
+// Run the script
+main();
