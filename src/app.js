@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import { normaliseDates } from "./helpers/dates.js";
-import { moveImageCountAndDate } from "./helpers/text.js";
+import { moveImageCountAndDate, cleanupPunctuation } from "./helpers/text.js";
 
 dotenv.config();
 
@@ -47,10 +47,9 @@ fs.readdir(directoryPath, { withFileTypes: true }, (err, entries) => {
                 (_, num1, _group2, num2) => `(x${num1 || num2})`
             );
 
-            // 🔄 Normalise date formats
             newName = normaliseDates(newName);
-
             newName = moveImageCountAndDate(newName);
+            newName = cleanupPunctuation(newName);
 
             if (newName !== oldName) {
                 const oldPath = path.join(directoryPath, oldName);

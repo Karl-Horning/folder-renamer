@@ -35,4 +35,24 @@ function moveImageCountAndDate(name) {
     return name;
 }
 
-export { moveImageCountAndDate };
+/**
+ * Cleans up extra commas, double spaces, and trailing punctuation.
+ *
+ * @param {string} name - Folder name string to clean.
+ * @returns {string} - Cleaned string with tidy punctuation.
+ */
+function cleanupPunctuation(name) {
+    return (
+        name
+            // Replace multiple commas or comma-space combinations with a single comma
+            .replace(/(,\s*){2,}/g, ", ")
+            // Remove trailing comma before metadata like (x238) or (2020-01-01)
+            .replace(/,\s*(\(\w.*?\))/g, " $1")
+            // Remove trailing commas or spaces
+            .replace(/,\s*$/, "")
+            .replace(/\s{2,}/g, " ") // Collapse multiple spaces
+            .trim()
+    );
+}
+
+export { moveImageCountAndDate, cleanupPunctuation };
