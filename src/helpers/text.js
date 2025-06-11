@@ -55,4 +55,29 @@ function cleanupPunctuation(name) {
     );
 }
 
-export { moveImageCountAndDate, cleanupPunctuation };
+/**
+ * Moves any specified prefix found at the start of the folder name
+ * to the end of the name inside square brackets.
+ *
+ * For example:
+ * 'MyPhotos, Holidays, Holiday snaps' → 'Holidays, Holiday snaps [MyPhotos]'
+ * 'FamilyPhotos Holidays, Holiday snaps' → 'Holidays, Holiday snaps [FamilyPhotos]'
+ *
+ * @param {string} name - The original folder name.
+ * @param {string[]} prefixes - Array of prefix names to detect and move.
+ * @returns {string} - The modified folder name with prefix moved to the end.
+ */
+function movePrefixesToEnd(name, prefixes) {
+    for (const prefix of prefixes) {
+        // Build a regex to match prefix at start, optionally followed by comma or whitespace
+        const regex = new RegExp(`^${prefix}(?:,\\s*|\\s+)`, "i");
+        if (regex.test(name)) {
+            name = name.replace(regex, "").trim();
+            // Append prefix in square brackets to the end
+            return `${name} [${prefix}]`;
+        }
+    }
+    return name;
+}
+
+export { moveImageCountAndDate, cleanupPunctuation, movePrefixesToEnd };

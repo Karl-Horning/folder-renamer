@@ -2,11 +2,22 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import { normaliseDates } from "./helpers/dates.js";
-import { moveImageCountAndDate, cleanupPunctuation } from "./helpers/text.js";
+import {
+    moveImageCountAndDate,
+    cleanupPunctuation,
+    movePrefixesToEnd,
+} from "./helpers/text.js";
 
 dotenv.config();
 
 const directoryPath = process.env.DIRECTORY_PATH;
+const prefixesPath = path.resolve(
+    process.cwd(),
+    "src",
+    "data",
+    "prefixes.json"
+);
+const prefixesToMove = JSON.parse(fs.readFileSync(prefixesPath, "utf8"));
 
 if (!directoryPath) {
     console.error("Error: DIRECTORY_PATH not set in .env");
@@ -25,6 +36,7 @@ fs.readdir(directoryPath, { withFileTypes: true }, (err, entries) => {
                 .replace(/ - /g, ", ")
                 .replace(/ • /g, ", ")
                 .replace(/Re;/g, "")
+                .replace(/;/g, "")
                 .replace(/.com/g, "")
                 .replace(/.nl/g, "NL")
                 .replace(/.NL/g, "NL")
@@ -50,6 +62,7 @@ fs.readdir(directoryPath, { withFileTypes: true }, (err, entries) => {
             newName = normaliseDates(newName);
             newName = moveImageCountAndDate(newName);
             newName = cleanupPunctuation(newName);
+            newName = movePrefixesToEnd(newName, prefixesToMove);
 
             if (newName !== oldName) {
                 const oldPath = path.join(directoryPath, oldName);
