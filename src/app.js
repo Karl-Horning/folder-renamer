@@ -40,9 +40,9 @@ function normaliseDates(name) {
         }
     );
 
-    // 2. Convert written dates like "Nov 27, 2018" → (2018-11-27)
+    // 2. Convert written dates like "Nov 27, 2018" or "Jun 11th, 2015" → (2018-11-27)
     name = name.replace(
-        /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[ .]+(\d{1,2}),[ ]*(\d{4})/gi,
+        /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[ .]+(\d{1,2})(?:st|nd|rd|th)?,[ ]*(\d{4})/gi,
         (_, mon, day, year) => {
             const month = monthMap[mon.slice(0, 3)];
             return `(${year}-${month}-${pad(day)})`;
@@ -98,8 +98,9 @@ fs.readdir(directoryPath, { withFileTypes: true }, (err, entries) => {
                 .replace(/5800px/g, "")
                 .replace(/1663x2495/g, "")
                 .replace(/2000x3000/g, "")
+                .replace(/2495x1663/g, "")
                 .replace(/2500x1667/g, "")
-                .replace(/2495x1663 px/g, "")
+                .replace(/ px/g, "")
                 .trim();
 
             newName = normaliseDates(newName);
