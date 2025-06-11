@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
+import { applyReplacePatterns } from "./helpers/replacePatterns.js";
 import { normaliseDates } from "./helpers/dates.js";
 import {
     moveImageCountAndDate,
@@ -32,26 +33,7 @@ fs.readdir(directoryPath, { withFileTypes: true }, (err, entries) => {
     entries.forEach((entry) => {
         if (entry.isDirectory()) {
             const oldName = entry.name;
-            let newName = oldName
-                .replace(/ - /g, ", ")
-                .replace(/ • /g, ", ")
-                .replace(/Re;/g, "")
-                .replace(/;/g, "")
-                .replace(/.com/g, "")
-                .replace(/.nl/g, "NL")
-                .replace(/.NL/g, "NL")
-                // .replace(/\./g, "-")
-                // Image sizes
-                .replace(/1000px/g, "")
-                .replace(/1920px/g, "")
-                .replace(/2500px/g, "")
-                .replace(/5800px/g, "")
-                .replace(/1663x2495/g, "")
-                .replace(/2000x3000/g, "")
-                .replace(/2495x1663/g, "")
-                .replace(/2500x1667/g, "")
-                .replace(/ px/g, "")
-                .trim();
+            let newName = applyReplacePatterns(oldName);
 
             // 🔄 Normalise image count patterns to (x###)
             newName = newName.replace(
