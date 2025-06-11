@@ -40,6 +40,13 @@ fs.readdir(directoryPath, { withFileTypes: true }, (err, entries) => {
                 .replace(/ px/g, "")
                 .trim();
 
+            // 🔄 Normalise image count patterns to (x###)
+            newName = newName.replace(
+                /\b(\d{2,5})(?: ?(pics?|photos?|images?)|[xX])\b|\b[xX](\d{2,5})\b/gi,
+                (_, num1, _group2, num2) => `(x${num1 || num2})`
+            );
+
+            // 🔄 Normalise date formats
             newName = normaliseDates(newName);
 
             if (newName !== oldName) {
