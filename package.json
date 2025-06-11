@@ -1,0 +1,21 @@
+{
+  "name": "folder-renamer",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/Karl-Horning/folder-renamer#readme",
+  "bugs": {
+    "url": "https://github.com/Karl-Horning/folder-renamer/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Karl-Horning/folder-renamer.git"
+  },
+  "license": "MIT",
+  "author": "Karl Horning",
+  "type": "commonjs",
+  "main": "app.js",
+  "scripts": {
+    "start": "node ./src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
