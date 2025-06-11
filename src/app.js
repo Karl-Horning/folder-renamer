@@ -10,7 +10,9 @@ if (!directoryPath) {
 }
 
 // Helper to pad numbers
-const pad = (n) => (n < 10 ? "0" + n : n);
+function pad(num) {
+    return String(parseInt(num, 10)).padStart(2, "0");
+}
 
 // Month lookup for written dates
 const monthMap = {
@@ -57,7 +59,12 @@ function normaliseDates(name) {
         return `(${y}-${pad(m)}-${pad(d)})`;
     });
 
-    // 5. Wrap bare YYYY-MM-DD in brackets, unless already in brackets
+    // 4.5 Convert dotted European-style dates like (07.11.2019) → (2019-11-07)
+    name = name.replace(/\((\d{1,2})\.(\d{1,2})\.(\d{4})\)/g, (_, d, m, y) => {
+        return `(${y}-${pad(m)}-${pad(d)})`;
+    });
+
+    // 5. Wrap bare ISO-style YYYY-MM-DD in brackets, unless already wrapped
     name = name.replace(
         /(?<!\()\b(\d{4})-(\d{2})-(\d{2})\b(?!\))/g,
         (_, y, m, d) => {
@@ -82,6 +89,8 @@ fs.readdir(directoryPath, { withFileTypes: true }, (err, entries) => {
                 .replace(/Re;/g, "")
                 .replace(/.com/g, "")
                 .replace(/.nl/g, "NL")
+                .replace(/.NL/g, "NL")
+                // .replace(/\./g, "-")
                 // Image sizes
                 .replace(/1000px/g, "")
                 .replace(/1920px/g, "")
