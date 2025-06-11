@@ -49,6 +49,27 @@ fs.readdir(directoryPath, { withFileTypes: true }, (err, entries) => {
             // 🔄 Normalise date formats
             newName = normaliseDates(newName);
 
+            // Match and extract the image count and date (if they exist)
+            const countMatch = newName.match(/\(x\d{2,5}\)/);
+            const dateMatch = newName.match(/\(\d{4}-\d{2}-\d{2}\)/);
+
+            // Remove them from their original position
+            if (countMatch && countMatch[0]) {
+                newName = newName.replace(countMatch[0], "").trim();
+            }
+            if (dateMatch && dateMatch[0]) {
+                newName = newName.replace(dateMatch[0], "").trim();
+            }
+
+            // Append to the end — only if found
+            const tagsToAppend = [];
+            if (countMatch && countMatch[0]) tagsToAppend.push(countMatch[0]);
+            if (dateMatch && dateMatch[0]) tagsToAppend.push(dateMatch[0]);
+
+            if (tagsToAppend.length) {
+                newName = `${newName} ${tagsToAppend.join(" ")}`.trim();
+            }
+
             if (newName !== oldName) {
                 const oldPath = path.join(directoryPath, oldName);
                 const newPath = path.join(directoryPath, newName);
