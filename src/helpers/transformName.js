@@ -23,7 +23,7 @@ export function transformName(name, prefixesToMove) {
 
     // 🔄 Normalise image count patterns like "123 pics" or "x456" → (x123)
     newName = newName.replace(
-        /\b(\d{2,5})(?: ?(pics?|photos?|images?)|[xX])\b|\b[xX](\d{2,5})\b/gi,
+        /\b(\d{2,5})(?: ?(pics?|pictures?|photos?|images?)|[xX])\b|\b[xX](\d{2,5})\b/gi,
         (_, num1, _group2, num2) => `(x${num1 || num2})`
     );
 
@@ -31,6 +31,12 @@ export function transformName(name, prefixesToMove) {
     newName = moveImageCountAndDate(newName);
     newName = cleanupPunctuation(newName);
     newName = movePrefixesToEnd(newName, prefixesToMove);
+
+    // Remove stray empty brackets like ()
+    newName = newName.replace(/\(\s*\)/g, "");
+
+    // Collapse multiple spaces into one
+    newName = newName.replace(/\s{2,}/g, " ").trim();
 
     return newName;
 }
