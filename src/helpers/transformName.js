@@ -32,8 +32,9 @@ export function transformName(name, prefixesToMove) {
     newName = cleanupPunctuation(newName);
     newName = movePrefixesToEnd(newName, prefixesToMove);
 
-    // Remove stray empty brackets like ()
+    // Remove stray empty brackets like () and []
     newName = newName.replace(/\(\s*\)/g, "");
+    newName = newName.replace(/\[\s*\]/g, "");
 
     // Collapse multiple spaces into one
     newName = newName.replace(/\s{2,}/g, " ").trim();
