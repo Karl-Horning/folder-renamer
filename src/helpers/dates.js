@@ -62,6 +62,11 @@ const fullMonthMap = {
  * @returns {string} The string with all recognised date formats normalised.
  */
 function normaliseDates(name) {
+    // 0. Convert dot-separated ISO-style dates (e.g. 2022.03.23) → (2022-03-23)
+    name = name.replace(/\b(\d{4})\.(\d{1,2})\.(\d{1,2})\b/g, (_, y, m, d) => {
+        return `(${y}-${pad(m)}-${pad(d)})`;
+    });
+
     // 1. Convert slashed short dates (e.g. 10/26/19 or 10⁄26⁄19) → (2019-10-26)
     name = name.replace(
         /(\d{1,2})[\/⁄](\d{1,2})[\/⁄](\d{2})/g,
@@ -69,6 +74,16 @@ function normaliseDates(name) {
             return `(${2000 + parseInt(y)}-${pad(m)}-${pad(d)})`;
         }
     );
+
+    // 1b. Convert dotted short US-style dates (e.g. 03.28.13) → (2013-03-28)
+    name = name.replace(/\b(\d{1,2})\.(\d{1,2})\.(\d{2})\b/g, (_, m, d, y) => {
+        return `(${2000 + parseInt(y)}-${pad(m)}-${pad(d)})`;
+    });
+
+    // 1c. Convert dotted full US-style dates (e.g. 03.23.2022) → (2022-03-23)
+    name = name.replace(/\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/g, (_, m, d, y) => {
+        return `(${y}-${pad(m)}-${pad(d)})`;
+    });
 
     // 2. Convert written month (abbr.) dates (e.g. Nov 27, 2018 or Jun 11th, 2015) → (2018-11-27)
     name = name.replace(
@@ -105,6 +120,15 @@ function normaliseDates(name) {
     // 7. Convert written full month name dates (e.g. 16 February 2025) → (2025-02-16)
     name = name.replace(
         /\b(\d{1,2})[ ]+(January|February|March|April|May|June|July|August|September|October|November|December)[ ]+(\d{4})\b/gi,
+        (_, day, month, year) => {
+            const monthNum = fullMonthMap[month.toLowerCase()];
+            return `(${year}-${monthNum}-${pad(day)})`;
+        }
+    );
+
+    // 7b. Convert full month name with ordinal day (e.g. 23rd March, 2022) → (2022-03-23)
+    name = name.replace(
+        /\b(\d{1,2})(?:st|nd|rd|th)?[ ]+(January|February|March|April|May|June|July|August|September|October|November|December),?[ ]+(\d{4})\b/gi,
         (_, day, month, year) => {
             const monthNum = fullMonthMap[month.toLowerCase()];
             return `(${year}-${monthNum}-${pad(day)})`;
