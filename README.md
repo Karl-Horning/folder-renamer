@@ -1,30 +1,30 @@
-# 📂 Folder Renamer
+# Folder Renamer
 
-## 📖 Table of Contents
+## Table of Contents
 
-- [📂 Folder Renamer](#-folder-renamer)
-  - [📖 Table of Contents](#-table-of-contents)
-  - [🤓 Introduction](#-introduction)
-  - [🧰 Features](#-features)
-  - [📁 Project Structure](#-project-structure)
-  - [🚀 Getting Started](#-getting-started)
+- [Folder Renamer](#folder-renamer)
+  - [Table of Contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Features](#features)
+  - [Project Structure](#project-structure)
+  - [Getting Started](#getting-started)
     - [1. Install Dependencies](#1-install-dependencies)
     - [2. Create a `.env` file](#2-create-a-env-file)
     - [3. Add Configuration](#3-add-configuration)
     - [4. Run the Script](#4-run-the-script)
-  - [🔧 Customisation](#-customisation)
-  - [🛡️ Safety Tips](#️-safety-tips)
-  - [📄 License](#-license)
+  - [Customisation](#customisation)
+  - [Safety Tips](#safety-tips)
+  - [License](#license)
 
 ---
 
-## 🤓 Introduction
+## Introduction
 
 A Node.js utility to batch-rename folders by cleaning up and restructuring folder names. It standardises patterns like dates, image counts, and known prefixes — perfect for tidying up messy photo archives or scanned documents.
 
 ---
 
-## 🧰 Features
+## Features
 
 - Replaces arbitrary strings using a configurable JSON file
 - Normalises dates to `YYYY-MM-DD` format
@@ -36,7 +36,7 @@ A Node.js utility to batch-rename folders by cleaning up and restructuring folde
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 src/
@@ -55,7 +55,7 @@ src/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Install Dependencies
 
@@ -96,7 +96,7 @@ npm start
 
 ---
 
-## 🔧 Customisation
+## Customisation
 
 - Add or remove text patterns in `replacePatterns.json`
 - Expand `prefixes.json` to handle more known prefixes
@@ -104,13 +104,13 @@ npm start
 
 ---
 
-## 🛡️ Safety Tips
+## Safety Tips
 
 - Backup your files before running.
 - This tool performs **in-place renaming**, so changes are irreversible unless you keep backups.
 
 ---
 
-## 📄 License
+## License
 
 MIT — feel free to use and adapt.
