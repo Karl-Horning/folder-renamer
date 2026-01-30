@@ -16,13 +16,9 @@
   - [Safety Tips](#safety-tips)
   - [License](#license)
 
----
-
 ## Introduction
 
 A Node.js utility to batch-rename folders by cleaning up and restructuring folder names. It standardises patterns like dates, image counts, and known prefixes — perfect for tidying up messy photo archives or scanned documents.
-
----
 
 ## Features
 
@@ -33,8 +29,6 @@ A Node.js utility to batch-rename folders by cleaning up and restructuring folde
 - Moves counts and dates to the end of folder names
 - Handles redundant punctuation and whitespace
 - All transformations are configurable and extendable
-
----
 
 ## Project Structure
 
@@ -52,8 +46,6 @@ src/
 │   ├── transformName.js          # Full pipeline for renaming logic
 │   └── validateEnv.js            # Ensures environment variables are set
 ```
-
----
 
 ## Getting Started
 
@@ -94,22 +86,16 @@ DIRECTORY_PATH=/absolute/path/to/folder
 npm start
 ```
 
----
-
 ## Customisation
 
 - Add or remove text patterns in `replacePatterns.json`
 - Expand `prefixes.json` to handle more known prefixes
 - Extend `transformName()` logic in `helpers/transformName.js` if needed
 
----
-
 ## Safety Tips
 
 - Backup your files before running.
 - This tool performs **in-place renaming**, so changes are irreversible unless you keep backups.
-
----
 
 ## License
 
