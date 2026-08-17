@@ -37,7 +37,8 @@ src/
 ├── app.js                        # Main entry script
 ├── data/
 │   ├── prefixes.json             # List of known prefixes to move
-│   └── replacePatterns.json      # Replace rules (e.g. "1000px" → "")
+│   ├── removePatterns.json       # Strings/patterns to strip entirely (e.g. scene tags)
+│   └── replacePatterns.json      # Text substitutions (e.g. " - " → ", ")
 ├── helpers/
 │   ├── dates.js                  # Date normalisation utilities
 │   ├── loadJSON.js               # Loads and parses JSON config files
@@ -70,13 +71,23 @@ DIRECTORY_PATH=/absolute/path/to/folder
   ["MyPhotos", "FamilyPhotos"]
   ```
 
+- **`src/data/removePatterns.json`**
+  An array of objects defining strings or regex patterns to strip entirely (the replacement is always an empty string, so it doesn't need to be specified). Use `isRegex: true` for regex patterns and `caseInsensitive: true` to match regardless of case.
+
+  ```json
+  [
+    { "text": "(digital)", "caseInsensitive": true },
+    { "text": "\\b\\d{2,5}px\\b", "isRegex": true }
+  ]
+  ```
+
 - **`src/data/replacePatterns.json`**
-  An array of objects defining text replacements.
+  An array of objects defining text substitutions, where the match is replaced with different text rather than removed. Supports the same `isRegex` and `caseInsensitive` options.
 
   ```json
   [
     { "text": " - ", "replacement": ", " },
-    { "text": "1000px", "replacement": "" }
+    { "text": ".nl", "replacement": "NL", "caseInsensitive": true }
   ]
   ```
 
@@ -88,7 +99,7 @@ npm start
 
 ## Customisation
 
-- Add or remove text patterns in `replacePatterns.json`
+- Add or remove strip-only patterns in `removePatterns.json`, and text substitutions in `replacePatterns.json`
 - Expand `prefixes.json` to handle more known prefixes
 - Extend `transformName()` logic in `helpers/transformName.js` if needed
 
