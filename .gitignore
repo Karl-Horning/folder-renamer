@@ -134,3 +134,4 @@ src/data/
 
 # macOS files
 .DS_Store
+*~lock~
