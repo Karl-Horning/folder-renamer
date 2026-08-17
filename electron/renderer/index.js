@@ -51,13 +51,19 @@ runBtn.addEventListener("click", async () => {
     logTable.querySelectorAll(".log-row:not(.head)").forEach((row) =>
         row.remove()
     );
+    emptyState.textContent = "Processing…";
     emptyState.style.display = "";
     totalsEl.textContent = "";
 
     try {
         const { renamed, errored } = await window.api.runRename();
+        emptyState.textContent =
+            renamed === 0 && errored === 0
+                ? "Nothing to rename — every folder already matches its target name."
+                : "No folders processed yet.";
         totalsEl.textContent = `Items ${renamed + errored} · OK ${renamed} · Err ${errored}`;
     } catch (err) {
+        emptyState.textContent = "No folders processed yet.";
         totalsEl.textContent = `Failed: ${err.message}`;
     } finally {
         runBtn.disabled = !directoryPath;
