@@ -6,6 +6,7 @@ import Store from "electron-store";
 
 import { runRenameJob } from "./lib/renameJob.js";
 import { seedDataDir } from "./lib/seedUserData.js";
+import { waitForActiveOperation } from "./lib/quitGuard.js";
 
 // Electron's main-process module exposes its API via lazy getters that
 // ESM's default-import interop can't see (`import electron from "electron"`
@@ -40,6 +41,8 @@ let userDataDir;
 let mainWindow = null;
 /** @type {BrowserWindow | null} */
 let settingsWindow = null;
+/** @type {Promise<any> | null} */
+let activeRenamePromise = null;
 
 /**
  * Resolves this app's userData data directory, seeding it from the bundled
@@ -171,9 +174,14 @@ ipcMain.handle("config:reveal", () => {
 
 ipcMain.handle("rename:run", async (event) => {
     const directoryPath = store.get("directoryPath");
-    return runRenameJob(directoryPath, userDataDir, (entry) =>
+    activeRenamePromise = runRenameJob(directoryPath, userDataDir, (entry) =>
         event.sender.send("rename:log", entry)
     );
+    try {
+        return await activeRenamePromise;
+    } finally {
+        activeRenamePromise = null;
+    }
 });
 
 // --- Lifecycle ---
@@ -196,7 +204,21 @@ app.on("window-all-closed", () => {
 // watchdog guarantees termination regardless of what's stalling — safe
 // because electron-store writes synchronously, so nothing async is lost.
 let watchdogStarted = false;
-app.on("before-quit", () => {
+let quittingAfterRename = false;
+
+app.on("before-quit", (event) => {
+    // If a rename batch is still running, let it finish (up to a ceiling)
+    // instead of cutting it off mid-batch — quitting again afterward falls
+    // through to the watchdog below as normal.
+    if (activeRenamePromise && !quittingAfterRename) {
+        event.preventDefault();
+        quittingAfterRename = true;
+        waitForActiveOperation(activeRenamePromise, 15_000).then(() =>
+            app.quit()
+        );
+        return;
+    }
+
     if (watchdogStarted) return;
     watchdogStarted = true;
     spawn("sh", ["-c", `sleep 2 && kill -9 ${process.pid}`], {
