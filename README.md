@@ -97,6 +97,15 @@ DIRECTORY_PATH=/absolute/path/to/folder
 npm start
 ```
 
+## Testing
+
+Unit tests cover the pure helper logic (date/text normalisation, pattern replacement, prefix handling) and live alongside the source files as `*.test.js`.
+
+```bash
+npm test          # Run once
+npm run test:watch # Re-run on file changes
+```
+
 ## Customisation
 
 - Add or remove strip-only patterns in `removePatterns.json`, and text substitutions in `replacePatterns.json`
