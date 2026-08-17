@@ -15,6 +15,9 @@
   "type": "module",
   "main": "electron/main.js",
   "productName": "Folder Renamer",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node ./src/app.js",
     "electron": "electron .",
