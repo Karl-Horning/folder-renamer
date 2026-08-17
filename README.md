@@ -76,8 +76,9 @@ npm run dist        # build a distributable .app
 | `npm start` | Run the folder-renaming CLI |
 | `npm run electron` | Run the desktop app |
 | `npm run dist` | Build a distributable `.app` |
-| `npm test` | Run the test suite once |
-| `npm run test:watch` | Re-run tests on file changes |
+| `npm test` | Run the unit test suite once |
+| `npm run test:watch` | Re-run unit tests on file changes |
+| `npm run test:e2e` | Launch the real desktop app and drive it end-to-end |
 
 ## Feedback and issues
 

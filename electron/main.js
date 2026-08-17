@@ -1,13 +1,11 @@
-import fs from "fs/promises";
 import path from "path";
 import { spawn } from "child_process";
 import { createRequire } from "module";
 import { fileURLToPath } from "url";
 import Store from "electron-store";
 
-import { loadJSON } from "../src/helpers/loadJSON.js";
-import { initReplacePatterns } from "../src/helpers/replacePatterns.js";
-import { renameFolders } from "../src/renameFolders.js";
+import { runRenameJob } from "./lib/renameJob.js";
+import { seedDataDir } from "./lib/seedUserData.js";
 
 // Electron's main-process module exposes its API via lazy getters that
 // ESM's default-import interop can't see (`import electron from "electron"`
@@ -44,27 +42,13 @@ let mainWindow = null;
 let settingsWindow = null;
 
 /**
- * Copies the bundled default pattern/prefix files into userData on first run, so future
- * app updates never overwrite the user's real, evolving pattern list — only the seed copy.
+ * Resolves this app's userData data directory, seeding it from the bundled
+ * defaults on first run — see seedDataDir for why that matters.
  * @returns {Promise<string>} The resolved userData data directory.
  */
 async function seedUserData() {
     const dataDir = path.join(app.getPath("userData"), "data");
-
-    try {
-        await fs.access(dataDir);
-    } catch {
-        await fs.mkdir(dataDir, { recursive: true });
-        await Promise.all(
-            PATTERN_FILES.map((file) =>
-                fs.copyFile(
-                    path.join(BUNDLED_DATA_DIR, file),
-                    path.join(dataDir, file)
-                )
-            )
-        );
-    }
-
+    await seedDataDir(dataDir, BUNDLED_DATA_DIR, PATTERN_FILES);
     return dataDir;
 }
 
@@ -185,55 +169,11 @@ ipcMain.handle("config:reveal", () => {
     shell.openPath(userDataDir);
 });
 
-const FRIENDLY_RENAME_ERRORS = {
-    EEXIST: "A folder with that name already exists.",
-    ENOTEMPTY: "A folder with that name already exists.",
-    ENOTDIR: "A file with that name already exists.",
-    EACCES: "Permission denied.",
-    EPERM: "Permission denied.",
-};
-
-/**
- * Turns a raw fs.rename error into a short, human-readable reason — Node's
- * default message repeats both full file paths, which is unreadable in a log row.
- * @param {NodeJS.ErrnoException} err - The error thrown by fs.rename.
- * @returns {string} A short, human-readable reason.
- */
-function describeRenameError(err) {
-    return FRIENDLY_RENAME_ERRORS[err.code] ?? err.code ?? err.message;
-}
-
 ipcMain.handle("rename:run", async (event) => {
     const directoryPath = store.get("directoryPath");
-    if (!directoryPath) {
-        throw new Error("No folder is set. Open Settings and choose one.");
-    }
-
-    const prefixesToMove = await loadJSON(
-        path.join(userDataDir, "prefixes.json")
+    return runRenameJob(directoryPath, userDataDir, (entry) =>
+        event.sender.send("rename:log", entry)
     );
-    initReplacePatterns(userDataDir);
-
-    let renamed = 0;
-    let errored = 0;
-
-    await renameFolders(directoryPath, prefixesToMove, {
-        onRename: (oldName, newName) => {
-            renamed += 1;
-            event.sender.send("rename:log", { type: "ok", oldName, newName });
-        },
-        onError: (oldName, newName, err) => {
-            errored += 1;
-            event.sender.send("rename:log", {
-                type: "error",
-                oldName,
-                newName,
-                message: describeRenameError(err),
-            });
-        },
-    });
-
-    return { renamed, errored };
 });
 
 // --- Lifecycle ---

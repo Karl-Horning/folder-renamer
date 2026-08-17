@@ -1,3 +1,5 @@
+import { emptyStateMessage, formatLogEntry, formatTotals } from "./logic.js";
+
 const pathDisplay = document.getElementById("path-display");
 const runBtn = document.getElementById("run-btn");
 const settingsBtn = document.getElementById("settings-btn");
@@ -27,10 +29,7 @@ function addLogRow(entry) {
     row.className = `log-row ${entry.type === "ok" ? "ok" : "err"}`;
 
     const item = document.createElement("span");
-    item.textContent =
-        entry.type === "ok"
-            ? `${entry.oldName} → ${entry.newName}`
-            : `${entry.oldName} — ${entry.message}`;
+    item.textContent = formatLogEntry(entry);
 
     const chip = document.createElement("span");
     chip.className = "chip";
@@ -57,11 +56,8 @@ runBtn.addEventListener("click", async () => {
 
     try {
         const { renamed, errored } = await window.api.runRename();
-        emptyState.textContent =
-            renamed === 0 && errored === 0
-                ? "Nothing to rename — every folder already matches its target name."
-                : "No folders processed yet.";
-        totalsEl.textContent = `Items ${renamed + errored} · OK ${renamed} · Err ${errored}`;
+        emptyState.textContent = emptyStateMessage(renamed, errored);
+        totalsEl.textContent = formatTotals(renamed, errored);
     } catch (err) {
         emptyState.textContent = "No folders processed yet.";
         totalsEl.textContent = `Failed: ${err.message}`;
