@@ -26,8 +26,14 @@ async function main() {
     const dataDir = path.join(__dirname, "data");
 
     // Load prefixes and remove/replace patterns
-    const prefixesToMove = await loadJSON(path.join(dataDir, "prefixes.json"));
-    initReplacePatterns(dataDir);
+    let prefixesToMove;
+    try {
+        prefixesToMove = await loadJSON(path.join(dataDir, "prefixes.json"));
+        initReplacePatterns(dataDir);
+    } catch (err) {
+        console.error(err.message);
+        process.exit(1);
+    }
 
     try {
         await renameFolders(directoryPath, prefixesToMove, {

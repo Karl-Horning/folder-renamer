@@ -78,6 +78,25 @@ describe("runRenameJob", () => {
         );
     });
 
+    it("throws a clear, catchable error when prefixes.json is missing", async () => {
+        await fs.rm(path.join(dataDir, "prefixes.json"));
+
+        await expect(
+            runRenameJob(targetDir, dataDir, () => {})
+        ).rejects.toThrow(/Failed to load JSON from .*prefixes\.json/);
+    });
+
+    it("throws a clear, catchable error when a pattern file is corrupted", async () => {
+        await fs.writeFile(
+            path.join(dataDir, "removePatterns.json"),
+            "{ not valid json"
+        );
+
+        await expect(
+            runRenameJob(targetDir, dataDir, () => {})
+        ).rejects.toThrow(/Failed to load removePatterns\.json/);
+    });
+
     it("renames folders, reports each attempt, and returns the final counts", async () => {
         await fs.mkdir(path.join(targetDir, "Holiday Snaps (digital)"));
 

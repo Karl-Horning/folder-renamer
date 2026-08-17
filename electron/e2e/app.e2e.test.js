@@ -126,6 +126,50 @@ describe("Folder Renamer app (E2E)", () => {
         expect(remaining).toEqual(["Holiday Snaps"]);
     });
 
+    it("shows a clear error instead of crashing when a config file is missing", async () => {
+        scratchDir = await fs.mkdtemp(
+            path.join(os.tmpdir(), "folder-renamer-e2e-")
+        );
+        await fs.mkdir(path.join(scratchDir, "Some Folder"));
+
+        const mainPage = app.windows()[0];
+        const userDataPath = await app.evaluate(({ app }) =>
+            app.getPath("userData")
+        );
+        const prefixesPath = path.join(userDataPath, "data", "prefixes.json");
+        const backup = await fs.readFile(prefixesPath, "utf8");
+
+        try {
+            await fs.rm(prefixesPath);
+
+            await mainPage.click("#settings-btn");
+            await sleep(500);
+            const settingsPage = app
+                .windows()
+                .find((w) => w.url().includes("settings.html"));
+            await settingsPage.evaluate(
+                (dir) => window.api.saveSettings({ directoryPath: dir }),
+                scratchDir
+            );
+            await settingsPage.close();
+            await sleep(300);
+
+            mainPage.once("dialog", (dialog) => dialog.accept());
+            await mainPage.click("#run-btn");
+            await sleep(1000);
+
+            const totals = await mainPage.evaluate(
+                () => document.getElementById("totals").textContent
+            );
+            expect(totals).toMatch(/^Failed:/);
+
+            // The app itself must still be alive and responsive, not vanished.
+            expect(app.windows().length).toBeGreaterThan(0);
+        } finally {
+            await fs.writeFile(prefixesPath, backup);
+        }
+    });
+
     it("quits within a bounded time", async () => {
         const proc = app.process();
         const exitPromise = new Promise((resolve) =>
