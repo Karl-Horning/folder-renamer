@@ -1,5 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
+import { spawn } from "child_process";
 import { createRequire } from "module";
 import { fileURLToPath } from "url";
 import Store from "electron-store";
@@ -249,4 +250,17 @@ app.whenReady().then(async () => {
 
 app.on("window-all-closed", () => {
     if (process.platform !== "darwin") app.quit();
+});
+
+// Chromium can occasionally hang for several seconds on quit. This detached
+// watchdog guarantees termination regardless of what's stalling — safe
+// because electron-store writes synchronously, so nothing async is lost.
+let watchdogStarted = false;
+app.on("before-quit", () => {
+    if (watchdogStarted) return;
+    watchdogStarted = true;
+    spawn("sh", ["-c", `sleep 2 && kill -9 ${process.pid}`], {
+        detached: true,
+        stdio: "ignore",
+    }).unref();
 });
