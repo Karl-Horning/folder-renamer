@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Folder Renamer</title>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body class="main-window">
+        <main>
+            <div class="label">Origin</div>
+            <div class="path-display" id="path-display">Loading…</div>
+
+            <div class="actions">
+                <button class="btn btn-primary" id="run-btn" disabled>
+                    Process Batch
+                </button>
+                <button class="btn" id="settings-btn">Settings…</button>
+            </div>
+
+            <div class="log-table" id="log-table">
+                <div class="log-row head"><span>Item</span><span>Status</span></div>
+            </div>
+            <div class="empty-state" id="empty-state">
+                No folders processed yet.
+            </div>
+
+            <div class="totals" id="totals"></div>
+        </main>
+        <script src="index.js"></script>
+    </body>
+</html>

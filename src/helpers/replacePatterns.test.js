@@ -1,8 +1,14 @@
-import { describe, expect, it } from "vitest";
+import path from "path";
 
-import { applyReplacePatterns } from "./replacePatterns.js";
+import { beforeAll, describe, expect, it } from "vitest";
+
+import { applyReplacePatterns, initReplacePatterns } from "./replacePatterns.js";
 
 describe("applyReplacePatterns", () => {
+    beforeAll(() => {
+        initReplacePatterns(path.resolve(process.cwd(), "src", "data"));
+    });
+
     it("strips known release-group scene tags", () => {
         expect(applyReplacePatterns("My Comic (DrVink-DCP)")).toBe(
             "My Comic"
