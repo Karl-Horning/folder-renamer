@@ -4,7 +4,11 @@ import path from "path";
 
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { applyReplacePatterns, initReplacePatterns } from "./replacePatterns.js";
+import {
+    applyReplacePatterns,
+    hasAnyPatterns,
+    initReplacePatterns,
+} from "./replacePatterns.js";
 
 describe("applyReplacePatterns", () => {
     beforeAll(async () => {
@@ -171,5 +175,23 @@ describe("applyReplacePatterns", () => {
 
     it("leaves a clean name unchanged", () => {
         expect(applyReplacePatterns("Holiday Snaps")).toBe("Holiday Snaps");
+    });
+
+    it("reports patterns as loaded once initReplacePatterns has run against non-empty files", () => {
+        expect(hasAnyPatterns()).toBe(true);
+    });
+});
+
+describe("hasAnyPatterns", () => {
+    it("reports no patterns loaded when both pattern files are empty", async () => {
+        const dataDir = await fs.mkdtemp(
+            path.join(os.tmpdir(), "replacepatterns-empty-test-")
+        );
+        await fs.writeFile(path.join(dataDir, "removePatterns.json"), "[]");
+        await fs.writeFile(path.join(dataDir, "replacePatterns.json"), "[]");
+
+        initReplacePatterns(dataDir);
+
+        expect(hasAnyPatterns()).toBe(false);
     });
 });

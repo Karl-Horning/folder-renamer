@@ -105,7 +105,7 @@ describe("runRenameJob", () => {
             logEntries.push(entry)
         );
 
-        expect(result).toEqual({ renamed: 1, errored: 0 });
+        expect(result).toEqual({ renamed: 1, errored: 0, hasConfig: true });
         expect(logEntries).toEqual([
             {
                 type: "ok",
@@ -127,7 +127,7 @@ describe("runRenameJob", () => {
             logEntries.push(entry)
         );
 
-        expect(result).toEqual({ renamed: 0, errored: 1 });
+        expect(result).toEqual({ renamed: 0, errored: 1, hasConfig: true });
         expect(logEntries).toEqual([
             {
                 type: "error",
@@ -149,7 +149,7 @@ describe("runRenameJob", () => {
             true
         );
 
-        expect(result).toEqual({ renamed: 1, errored: 0 });
+        expect(result).toEqual({ renamed: 1, errored: 0, hasConfig: true });
         expect(logEntries).toEqual([
             {
                 type: "ok",
@@ -171,7 +171,17 @@ describe("runRenameJob", () => {
             logEntries.push(entry)
         );
 
-        expect(result).toEqual({ renamed: 0, errored: 0 });
+        expect(result).toEqual({ renamed: 0, errored: 0, hasConfig: true });
         expect(logEntries).toEqual([]);
+    });
+
+    it("reports hasConfig: false when prefixes and all patterns are empty", async () => {
+        await fs.writeFile(path.join(dataDir, "prefixes.json"), "[]");
+        await fs.writeFile(path.join(dataDir, "removePatterns.json"), "[]");
+        await fs.mkdir(path.join(targetDir, "Holiday Snaps"));
+
+        const result = await runRenameJob(targetDir, dataDir, () => {});
+
+        expect(result).toEqual({ renamed: 0, errored: 0, hasConfig: false });
     });
 });

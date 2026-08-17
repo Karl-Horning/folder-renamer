@@ -73,8 +73,14 @@ The Electron app runs the same rename logic as the CLI, with a window to trigger
 
 ```bash
 npm run electron   # run in development
-npm run dist        # build a distributable .app
+npm run dist       # build a distributable .app
 ```
+
+**First run:**
+
+1. Open **Preferences** (`Cmd+,`) and choose the folder you want to clean up.
+2. The app starts with no rename rules — **Preview** and **Process Batch** won't find anything to do until you add some. Open **Reveal Config Folder** (`Cmd+Shift+R`) from the menu and edit `prefixes.json`, `removePatterns.json`, and `replacePatterns.json` there; see [Configuration](#configuration) above for the format each one expects.
+3. Click **Preview** to check what would change, then **Process Batch** to actually rename.
 
 Keyboard shortcuts (also in the menu bar):
 

@@ -44,6 +44,15 @@ export function initReplacePatterns(dataDir) {
 }
 
 /**
+ * Reports whether initReplacePatterns loaded any remove/replace patterns at all.
+ * Distinguishes "ran and found nothing to change" from "no rules configured yet".
+ * @returns {boolean} True if at least one remove or replace pattern is loaded.
+ */
+export function hasAnyPatterns() {
+    return allPatterns.length > 0;
+}
+
+/**
  * Applies the loaded remove/replace patterns to a folder name string.
  *
  * The function processes an array of replacement rules, where each rule can specify
