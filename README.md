@@ -2,6 +2,10 @@
 
 A Node.js CLI that batch-renames folders — cleaning up dates, image counts, and known prefixes so messy photo and scan archives end up consistently named.
 
+## Screenshots and demo
+
+![Folder Renamer's desktop app after processing a batch of folders, showing successful renames and one handled error](public/demo.png)
+
 ## Tech stack
 
 - Node.js (ES modules)
