@@ -20,7 +20,8 @@
     "electron": "electron .",
     "dist": "electron-builder",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "vitest run --config vitest.e2e.config.js"
   },
   "dependencies": {
     "dotenv": "^16.5.0",
@@ -29,6 +30,7 @@
   "devDependencies": {
     "electron": "^43.4.0",
     "electron-builder": "^26.15.3",
+    "playwright-core": "^1.62.1",
     "vitest": "^3.2.7"
   },
   "build": {
