@@ -1,3 +1,5 @@
+import fs from "fs/promises";
+import os from "os";
 import path from "path";
 
 import { beforeAll, describe, expect, it } from "vitest";
@@ -5,17 +7,64 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { applyReplacePatterns, initReplacePatterns } from "./replacePatterns.js";
 
 describe("applyReplacePatterns", () => {
-    beforeAll(() => {
-        initReplacePatterns(path.resolve(process.cwd(), "src", "data"));
-    });
-
-    it("strips known release-group scene tags", () => {
-        expect(applyReplacePatterns("My Comic (DrVink-DCP)")).toBe(
-            "My Comic"
+    beforeAll(async () => {
+        // Self-contained synthetic fixture data, not the real (gitignored)
+        // src/data/ — these tests shouldn't depend on a personal pattern
+        // list that doesn't exist in a fresh clone.
+        const dataDir = await fs.mkdtemp(
+            path.join(os.tmpdir(), "replacepatterns-test-")
         );
+        await fs.writeFile(
+            path.join(dataDir, "removePatterns.json"),
+            JSON.stringify([
+                { text: "(Scanner)", caseInsensitive: true },
+                { text: "(Digital-HD)", caseInsensitive: true },
+                { text: "\\([2-7] covers\\)", isRegex: true },
+                { text: ".com", caseInsensitive: true },
+                {
+                    text: "Download (link;?|zip( file)?;?|mirror;?)",
+                    isRegex: true,
+                    caseInsensitive: true,
+                },
+                {
+                    text: "\\(?(Future Release|pre-release)\\)?",
+                    isRegex: true,
+                    caseInsensitive: true,
+                },
+                {
+                    text: ",\\s*-?\\s*Upcoming Release",
+                    isRegex: true,
+                    caseInsensitive: true,
+                },
+                {
+                    text: ",\\s*-?\\s*Unreleased",
+                    isRegex: true,
+                    caseInsensitive: true,
+                },
+                { text: "\\b\\d{2,5}px\\b", isRegex: true },
+                { text: "\\b\\d{2,5}x\\d{2,5}px\\b", isRegex: true },
+                { text: "\\(?\\d{2,5}x\\d{2,5}(px)?\\)?", isRegex: true },
+            ])
+        );
+        await fs.writeFile(
+            path.join(dataDir, "replacePatterns.json"),
+            JSON.stringify([
+                { text: "\\bset\\b", replacement: "Set", isRegex: true },
+                { text: "⁄", replacement: "-" },
+                { text: " (-|•|¦) ", replacement: ", ", isRegex: true },
+                { text: "&amp;", replacement: "&" },
+                { text: ".eu", replacement: "EU" },
+                { text: ".nl", replacement: "NL", caseInsensitive: true },
+            ])
+        );
+        initReplacePatterns(dataDir);
     });
 
-    it("strips scene tags regardless of case", () => {
+    it("strips a known bracketed tag", () => {
+        expect(applyReplacePatterns("My Comic (Scanner)")).toBe("My Comic");
+    });
+
+    it("strips bracketed tags regardless of case", () => {
         expect(applyReplacePatterns("My Comic (Digital-HD)")).toBe(
             "My Comic"
         );
@@ -44,7 +93,7 @@ describe("applyReplacePatterns", () => {
         expect(applyReplacePatterns("Download zip Something")).toBe(
             "Something"
         );
-        expect(applyReplacePatterns("Download K2S; Something")).toBe(
+        expect(applyReplacePatterns("Download Mirror; Something")).toBe(
             "Something"
         );
         expect(applyReplacePatterns("Download ZIP file; Something")).toBe(
@@ -117,9 +166,7 @@ describe("applyReplacePatterns", () => {
     it("strips pixel dimension patterns", () => {
         expect(applyReplacePatterns("Scan 4800px")).toBe("Scan");
         expect(applyReplacePatterns("Scan 800x600px")).toBe("Scan");
-        // The surrounding brackets are left behind here — stripping stray
-        // empty brackets is transformName's job, not applyReplacePatterns's.
-        expect(applyReplacePatterns("Scan (800x600)")).toBe("Scan ()");
+        expect(applyReplacePatterns("Scan (800x600)")).toBe("Scan");
     });
 
     it("leaves a clean name unchanged", () => {
