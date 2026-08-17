@@ -7,13 +7,13 @@ import { transformName } from "./helpers/transformName.js";
  * Renames every subfolder of a directory whose transformed name differs from its current name.
  * @param {string} directoryPath - Absolute path to the directory whose subfolders should be renamed.
  * @param {string[]} prefixesToMove - Prefixes to move to the end of a folder name.
- * @param {{onRename?: (oldName: string, newName: string) => void, onError?: (oldName: string, newName: string, err: Error) => void}} [callbacks] - Optional callbacks fired for each rename attempt.
+ * @param {{onRename?: (oldName: string, newName: string) => void, onError?: (oldName: string, newName: string, err: Error) => void, dryRun?: boolean}} [options] - Optional callbacks fired for each rename attempt, and a dry-run switch.
  * @returns {Promise<void>}
  */
 export async function renameFolders(
     directoryPath,
     prefixesToMove,
-    { onRename, onError } = {}
+    { onRename, onError, dryRun = false } = {}
 ) {
     const entries = await fs.readdir(directoryPath, { withFileTypes: true });
 
@@ -26,6 +26,12 @@ export async function renameFolders(
 
         // If the name hasn't changed, there's nothing to do
         if (newName === oldName) continue;
+
+        // Dry run: report what would happen without touching the filesystem.
+        if (dryRun) {
+            onRename?.(oldName, newName);
+            continue;
+        }
 
         const oldPath = path.join(directoryPath, oldName);
         const newPath = path.join(directoryPath, newName);

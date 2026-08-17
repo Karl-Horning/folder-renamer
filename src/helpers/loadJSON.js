@@ -7,7 +7,7 @@ import path from "path";
  * @param {...string} relativePath - Sequence of path segments to the JSON file.
  * @returns {any} Parsed JSON content.
  * @throws {Error} If the file can't be read or doesn't contain valid JSON —
- * callers decide how to handle that — for example exiting for a CLI, or showing an error for a GUI.
+ * callers decide how to handle that — for example, exiting for a CLI, or showing an error for a GUI.
  */
 export function loadJSON(...relativePath) {
     const fullPath = path.resolve(process.cwd(), ...relativePath);

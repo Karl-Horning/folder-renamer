@@ -9,7 +9,7 @@
  * appends them to the end in the order: image count, then date.
  *
  * @param {string} name - The original folder name.
- * @returns {string} - The modified folder name with count and date at the end.
+ * @returns {string} The modified folder name with count and date at the end.
  */
 function moveImageCountAndDate(name) {
     const countMatch = name.match(/\(x\d{2,5}\)/);
@@ -39,7 +39,7 @@ function moveImageCountAndDate(name) {
  * Cleans up extra commas, double spaces, and trailing punctuation.
  *
  * @param {string} name - Folder name string to clean.
- * @returns {string} - Cleaned string with tidy punctuation.
+ * @returns {string} Cleaned string with tidy punctuation.
  */
 function cleanupPunctuation(name) {
     return (
@@ -65,7 +65,7 @@ function cleanupPunctuation(name) {
  *
  * @param {string} name - The original folder name.
  * @param {string[]} prefixes - Array of prefix names to detect and move.
- * @returns {string} - The modified folder name with prefix moved to the end.
+ * @returns {string} The modified folder name with prefix moved to the end.
  */
 function movePrefixesToEnd(name, prefixes) {
     for (const prefix of prefixes) {

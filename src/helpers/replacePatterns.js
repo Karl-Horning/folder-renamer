@@ -34,7 +34,7 @@ export function initReplacePatterns(dataDir) {
         (pattern) => ({ ...pattern, replacement: "" })
     );
 
-    // Patterns that substitute a match with different text (for example separators,
+    // Patterns that substitute a match with different text (for example, separators,
     // capitalisation, domain suffixes).
     const replacePatterns = loadPatternsFile(dataDir, "replacePatterns.json");
 

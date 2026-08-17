@@ -16,6 +16,7 @@ A Node.js CLI that batch-renames folders — cleaning up dates, image counts, an
 - **Remove vs. replace patterns are separate files** — `removePatterns.json` strips text entirely (the replacement is always empty), `replacePatterns.json` substitutes text with something else. Splitting them avoids repeating `"replacement": ""` across dozens of entries.
 - **Pattern data isn't committed to git** — `src/data/*.json` holds hand-curated, personal scrubbing rules (scene-release tags, download-site cruft) that don't belong in a public repo. It's gitignored, so each clone builds its own list.
 - **The desktop app copies its config out of the app bundle on first run** — once packaged, `src/data/` is read-only, so the Electron app copies it into its own userData folder the first time it starts, and reads/writes there from then on. That way, app updates never overwrite your real, evolving pattern list.
+- **Preview/dry-run doesn't predict rename failures** — it shows what each folder would be renamed to, but not whether that rename would collide with something and fail. Accurately predicting that without attempting it is unreliable; a wrong prediction would be worse than none. Real failures still surface clearly when you actually run it.
 
 ## Local development
 
@@ -25,6 +26,8 @@ cd folder-renamer
 npm install
 npm start
 ```
+
+Add `--dry-run` to preview what would be renamed without touching anything: `npm start -- --dry-run`.
 
 ## Configuration
 
@@ -62,7 +65,7 @@ Three files in `src/data/` drive the transform. None of them ship with defaults,
 
 ## Desktop app
 
-The Electron app runs the same rename logic as the CLI, with a window to trigger it and a Settings window to change the target folder — no `.env` file needed. Its settings and pattern config live in `~/Library/Application Support/Folder Renamer/`, seeded from `src/data/` the first time it runs.
+The Electron app runs the same rename logic as the CLI, with a window to trigger it and a Settings window to change the target folder — no `.env` file needed. Its settings and pattern config live in `~/Library/Application Support/Folder Renamer/`, seeded from `src/data/` the first time it runs. **Preview** shows what would be renamed without touching anything, the same as the CLI's `--dry-run`.
 
 ```bash
 npm run electron   # run in development

@@ -24,6 +24,7 @@ async function main() {
     // Resolve necessary paths
     const directoryPath = process.env.DIRECTORY_PATH;
     const dataDir = path.join(__dirname, "data");
+    const dryRun = process.argv.includes("--dry-run");
 
     // Load prefixes and remove/replace patterns
     let prefixesToMove;
@@ -35,10 +36,19 @@ async function main() {
         process.exit(1);
     }
 
+    if (dryRun) {
+        console.log("Dry run — no folders will actually be renamed.\n");
+    }
+
     try {
         await renameFolders(directoryPath, prefixesToMove, {
+            dryRun,
             onRename: (oldName, newName) =>
-                console.log(`Renamed: '${oldName}' → '${newName}'`),
+                console.log(
+                    dryRun
+                        ? `Would rename: '${oldName}' → '${newName}'`
+                        : `Renamed: '${oldName}' → '${newName}'`
+                ),
             onError: (oldName, newName, err) =>
                 console.error(
                     `Error renaming '${oldName}' to '${newName}':`,

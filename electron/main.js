@@ -184,6 +184,18 @@ ipcMain.handle("rename:run", async (event) => {
     }
 });
 
+// Read-only, so it doesn't touch activeRenamePromise/the quit guard —
+// there's nothing on disk a force-quit could interrupt mid-preview.
+ipcMain.handle("rename:preview", async (event) => {
+    const directoryPath = store.get("directoryPath");
+    return runRenameJob(
+        directoryPath,
+        userDataDir,
+        (entry) => event.sender.send("rename:log", entry),
+        true
+    );
+});
+
 // --- Lifecycle ---
 
 app.whenReady().then(async () => {

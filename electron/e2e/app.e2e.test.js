@@ -26,8 +26,21 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 describe("Folder Renamer app (E2E)", () => {
     let app;
     let scratchDir;
+    let testUserDataDir;
 
     beforeAll(async () => {
+        // Isolated from the real userData directory: Karl actually uses this
+        // app now (a real, hand-curated removePatterns.json and a real saved
+        // directoryPath), so these tests must never read from or write to
+        // ~/Library/Application Support/Folder Renamer — only this temp copy.
+        testUserDataDir = await fs.mkdtemp(
+            path.join(os.tmpdir(), "folder-renamer-e2e-userdata-")
+        );
+        // macOS's /var/folders is itself a symlink to /private/var/folders —
+        // Electron reports the resolved path, so match it to avoid a false
+        // mismatch between two strings that name the same real directory.
+        testUserDataDir = await fs.realpath(testUserDataDir);
+
         // Launched via the project directory, not a bare file path — Electron
         // only reads package.json's productName/main this way. A bare file-path
         // launch falls back to the generic "Electron" userData folder instead
@@ -35,7 +48,7 @@ describe("Folder Renamer app (E2E)", () => {
         // if it ever regresses.
         app = await electron.launch({
             executablePath: electronBin,
-            args: [APP_DIR],
+            args: [APP_DIR, `--user-data-dir=${testUserDataDir}`],
             env: launchEnv,
             timeout: 30_000,
         });
@@ -46,6 +59,7 @@ describe("Folder Renamer app (E2E)", () => {
 
     afterAll(async () => {
         await app?.close().catch(() => {});
+        await fs.rm(testUserDataDir, { recursive: true, force: true });
     });
 
     afterEach(async () => {
@@ -55,11 +69,11 @@ describe("Folder Renamer app (E2E)", () => {
         }
     });
 
-    it("seeds its own userData directory, not the generic Electron one", async () => {
+    it("seeds the data files into its (isolated, test-only) userData directory", async () => {
         const userDataPath = await app.evaluate(({ app }) =>
             app.getPath("userData")
         );
-        expect(userDataPath).toMatch(/Folder Renamer/);
+        expect(userDataPath).toBe(testUserDataDir);
 
         const seededFiles = await fs.readdir(path.join(userDataPath, "data"));
         expect(seededFiles.sort()).toEqual([
@@ -124,6 +138,57 @@ describe("Folder Renamer app (E2E)", () => {
 
         const remaining = await fs.readdir(scratchDir);
         expect(remaining).toEqual(["Holiday Snaps"]);
+    });
+
+    it("previews a batch without touching the filesystem, then the real run still works", async () => {
+        scratchDir = await fs.mkdtemp(
+            path.join(os.tmpdir(), "folder-renamer-e2e-")
+        );
+        await fs.mkdir(
+            path.join(scratchDir, "Sandman Vol 3 (digital) (2 covers)")
+        );
+
+        const mainPage = app.windows()[0];
+
+        await mainPage.click("#settings-btn");
+        await sleep(500);
+        const settingsPage = app
+            .windows()
+            .find((w) => w.url().includes("settings.html"));
+        await settingsPage.evaluate(
+            (dir) => window.api.saveSettings({ directoryPath: dir }),
+            scratchDir
+        );
+        await settingsPage.close();
+        await sleep(300);
+
+        await mainPage.click("#preview-btn");
+        await sleep(800);
+
+        const previewTotals = await mainPage.evaluate(
+            () => document.getElementById("totals").textContent
+        );
+        const previewChip = await mainPage.evaluate(
+            () => document.querySelector(".log-row:not(.head) .chip")?.textContent
+        );
+        expect(previewTotals).toBe("Would rename 1 folder");
+        expect(previewChip).toBe("PREVIEW");
+
+        // Nothing should have actually changed on disk.
+        expect(await fs.readdir(scratchDir)).toEqual([
+            "Sandman Vol 3 (digital) (2 covers)",
+        ]);
+
+        // The real run should still work correctly afterward.
+        mainPage.once("dialog", (dialog) => dialog.accept());
+        await mainPage.click("#run-btn");
+        await sleep(1000);
+
+        const runChip = await mainPage.evaluate(
+            () => document.querySelector(".log-row:not(.head) .chip")?.textContent
+        );
+        expect(runChip).toBe("OK");
+        expect(await fs.readdir(scratchDir)).toEqual(["Sandman Vol 3"]);
     });
 
     it("shows a clear error instead of crashing when a config file is missing", async () => {
