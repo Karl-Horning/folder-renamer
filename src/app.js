@@ -15,7 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Main entry point for renaming folders based on configured patterns and rules.
+ * Validates configuration, loads the prefix list, and renames folders in the target directory.
  */
 async function main() {
     // Validate that required environment variables are set

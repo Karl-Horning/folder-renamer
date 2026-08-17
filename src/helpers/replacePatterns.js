@@ -3,7 +3,7 @@ import path from "path";
 
 /**
  * Loads and parses a pattern list from the data directory.
- * @param {string} filename
+ * @param {string} filename - Name of the JSON file to load, relative to `src/data/`.
  * @returns {Array<{text: string, replacement?: string, isRegex?: boolean, caseInsensitive?: boolean}>}
  */
 function loadPatterns(filename) {

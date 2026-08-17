@@ -1,78 +1,45 @@
 # Folder Renamer
 
-## Table of Contents
+A Node.js CLI that batch-renames folders — cleaning up dates, image counts, and known prefixes so messy photo and scan archives end up consistently named.
 
-- [Folder Renamer](#folder-renamer)
-  - [Table of Contents](#table-of-contents)
-  - [Introduction](#introduction)
-  - [Features](#features)
-  - [Project Structure](#project-structure)
-  - [Getting Started](#getting-started)
-    - [1. Install Dependencies](#1-install-dependencies)
-    - [2. Create a `.env` file](#2-create-a-env-file)
-    - [3. Add Configuration](#3-add-configuration)
-    - [4. Run the Script](#4-run-the-script)
-  - [Customisation](#customisation)
-  - [Safety Tips](#safety-tips)
-  - [License](#license)
+## Tech stack
 
-## Introduction
+- Node.js (ES modules)
+- [dotenv](https://www.npmjs.com/package/dotenv) for environment configuration
+- [Vitest](https://vitest.dev/) for testing
 
-A Node.js utility to batch-rename folders by cleaning up and restructuring folder names. It standardises patterns like dates, image counts, and known prefixes — perfect for tidying up messy photo archives or scanned documents.
+## Notable decisions
 
-## Features
+- **In-place renaming** — folders are renamed directly, with no undo. Back up before running.
+- **Remove vs. replace patterns are separate files** — `removePatterns.json` strips text entirely (the replacement is always empty), `replacePatterns.json` substitutes text with something else. Splitting them avoids repeating `"replacement": ""` across dozens of entries.
+- **Pattern data isn't committed to git** — `src/data/*.json` holds hand-curated, personal scrubbing rules (scene-release tags, download-site cruft) that don't belong in a public repo. It's gitignored, so each clone builds its own list.
 
-- Replaces arbitrary strings using a configurable JSON file
-- Normalises dates to `YYYY-MM-DD` format
-- Standardises image count patterns like `238x`, `110 photos`, or `x220` → `(x220)`
-- Moves known prefixes to the end, wrapped in `[]`
-- Moves counts and dates to the end of folder names
-- Handles redundant punctuation and whitespace
-- All transformations are configurable and extendable
-
-## Project Structure
-
-```text
-src/
-├── app.js                        # Main entry script
-├── data/
-│   ├── prefixes.json             # List of known prefixes to move
-│   ├── removePatterns.json       # Strings/patterns to strip entirely (e.g. scene tags)
-│   └── replacePatterns.json      # Text substitutions (e.g. " - " → ", ")
-├── helpers/
-│   ├── dates.js                  # Date normalisation utilities
-│   ├── loadJSON.js               # Loads and parses JSON config files
-│   ├── replacePatterns.js        # Applies text replacement patterns
-│   ├── text.js                   # Other text manipulation functions
-│   ├── transformName.js          # Full pipeline for renaming logic
-│   └── validateEnv.js            # Ensures environment variables are set
-```
-
-## Getting Started
-
-### 1. Install Dependencies
+## Local development
 
 ```bash
+git clone https://github.com/Karl-Horning/folder-renamer.git
+cd folder-renamer
 npm install
+npm start
 ```
 
-### 2. Create a `.env` file
+## Configuration
+
+Create a `.env` file in the project root:
 
 ```env
 DIRECTORY_PATH=/absolute/path/to/folder
 ```
 
-### 3. Add Configuration
+Three files in `src/data/` drive the transform. None of them ship with defaults, so all three need creating:
 
-- **`src/data/prefixes.json`**
-  A JSON array of prefix strings to move to the end of folder names.
+- **`prefixes.json`** — array of prefix strings to move to the end of a folder name, wrapped in `[]`.
 
   ```json
   ["MyPhotos", "FamilyPhotos"]
   ```
 
-- **`src/data/removePatterns.json`**
-  An array of objects defining strings or regex patterns to strip entirely (the replacement is always an empty string, so it doesn't need to be specified). Use `isRegex: true` for regex patterns and `caseInsensitive: true` to match regardless of case.
+- **`removePatterns.json`** — strings or regex patterns to strip entirely. Use `isRegex: true` for regex, `caseInsensitive: true` to match regardless of case.
 
   ```json
   [
@@ -81,8 +48,7 @@ DIRECTORY_PATH=/absolute/path/to/folder
   ]
   ```
 
-- **`src/data/replacePatterns.json`**
-  An array of objects defining text substitutions, where the match is replaced with different text rather than removed. Supports the same `isRegex` and `caseInsensitive` options.
+- **`replacePatterns.json`** — text substitutions, where the match is replaced with something else rather than removed. Supports the same `isRegex` and `caseInsensitive` options.
 
   ```json
   [
@@ -91,32 +57,18 @@ DIRECTORY_PATH=/absolute/path/to/folder
   ]
   ```
 
-### 4. Run the Script
+## Scripts
 
-```bash
-npm start
-```
+| Script | Description |
+| --- | --- |
+| `npm start` | Run the folder-renaming CLI |
+| `npm test` | Run the test suite once |
+| `npm run test:watch` | Re-run tests on file changes |
 
-## Testing
+## Feedback and issues
 
-Unit tests cover the pure helper logic (date/text normalisation, pattern replacement, prefix handling) and live alongside the source files as `*.test.js`.
-
-```bash
-npm test          # Run once
-npm run test:watch # Re-run on file changes
-```
-
-## Customisation
-
-- Add or remove strip-only patterns in `removePatterns.json`, and text substitutions in `replacePatterns.json`
-- Expand `prefixes.json` to handle more known prefixes
-- Extend `transformName()` logic in `helpers/transformName.js` if needed
-
-## Safety Tips
-
-- Backup your files before running.
-- This tool performs **in-place renaming**, so changes are irreversible unless you keep backups.
+Found a bug or have a suggestion? [Open an issue](https://github.com/Karl-Horning/folder-renamer/issues).
 
 ## License
 
-MIT — feel free to use and adapt.
+Released under the [MIT License](./LICENSE) by [Karl Horning](https://github.com/Karl-Horning).
