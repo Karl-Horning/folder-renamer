@@ -30,3 +30,24 @@ export function formatLogEntry(entry) {
 export function formatTotals(renamed, errored) {
     return `Items ${renamed + errored} · OK ${renamed} · Err ${errored}`;
 }
+
+/**
+ * Picks the message shown in the log area's empty-state slot after a preview completes.
+ * @param {number} count - Folders that would be renamed.
+ * @returns {string} The message to display.
+ */
+export function previewEmptyStateMessage(count) {
+    return count === 0
+        ? "Nothing would change — every folder already matches its target name."
+        : "No preview yet.";
+}
+
+/**
+ * Formats the totals line shown after a preview completes. Preview never predicts
+ * errors, so there's no error count to show alongside it.
+ * @param {number} count - Folders that would be renamed.
+ * @returns {string} The totals line's display text.
+ */
+export function formatPreviewTotals(count) {
+    return `Would rename ${count} folder${count === 1 ? "" : "s"}`;
+}

@@ -25,12 +25,15 @@ export function describeRenameError(err) {
 /**
  * Runs a rename batch against a directory using the pattern config in a data
  * directory, reporting each attempt via onLog and returning the final counts.
+ * With dryRun, reports what would be renamed without touching the filesystem —
+ * errors can't happen in that mode, since nothing is actually attempted.
  * @param {string} directoryPath - Folder whose subfolders should be renamed.
  * @param {string} dataDir - Directory containing prefixes.json and the pattern files.
  * @param {(entry: {type: "ok" | "error", oldName: string, newName: string, message?: string}) => void} onLog - Called once per rename attempt.
- * @returns {Promise<{renamed: number, errored: number}>}
+ * @param {boolean} [dryRun] - If true, report the changes without applying them.
+ * @returns {Promise<{renamed: number, errored: number}>} Final counts for the batch.
  */
-export async function runRenameJob(directoryPath, dataDir, onLog) {
+export async function runRenameJob(directoryPath, dataDir, onLog, dryRun = false) {
     if (!directoryPath) {
         throw new Error("No folder is set. Open Settings and choose one.");
     }
@@ -42,6 +45,7 @@ export async function runRenameJob(directoryPath, dataDir, onLog) {
     let errored = 0;
 
     await renameFolders(directoryPath, prefixesToMove, {
+        dryRun,
         onRename: (oldName, newName) => {
             renamed += 1;
             onLog({ type: "ok", oldName, newName });

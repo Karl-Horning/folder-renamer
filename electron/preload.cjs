@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld("api", {
     chooseDirectory: () => ipcRenderer.invoke("dialog:chooseDirectory"),
     revealConfigFolder: () => ipcRenderer.invoke("config:reveal"),
     runRename: () => ipcRenderer.invoke("rename:run"),
+    previewRename: () => ipcRenderer.invoke("rename:preview"),
 
     onRenameLog: (callback) => {
         const listener = (_event, entry) => callback(entry);

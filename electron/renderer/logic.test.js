@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { emptyStateMessage, formatLogEntry, formatTotals } from "./logic.js";
+import {
+    emptyStateMessage,
+    formatLogEntry,
+    formatPreviewTotals,
+    formatTotals,
+    previewEmptyStateMessage,
+} from "./logic.js";
 
 describe("emptyStateMessage", () => {
     it("says nothing needed to rename when there were zero renames and zero errors", () => {
@@ -48,5 +54,31 @@ describe("formatTotals", () => {
 
     it("formats all-zero totals", () => {
         expect(formatTotals(0, 0)).toBe("Items 0 · OK 0 · Err 0");
+    });
+});
+
+describe("previewEmptyStateMessage", () => {
+    it("says nothing would change when the preview found zero renames", () => {
+        expect(previewEmptyStateMessage(0)).toBe(
+            "Nothing would change — every folder already matches its target name."
+        );
+    });
+
+    it("falls back to the generic pre-preview message when there's at least one result", () => {
+        expect(previewEmptyStateMessage(3)).toBe("No preview yet.");
+    });
+});
+
+describe("formatPreviewTotals", () => {
+    it("pluralises for more than one folder", () => {
+        expect(formatPreviewTotals(4)).toBe("Would rename 4 folders");
+    });
+
+    it("stays singular for exactly one folder", () => {
+        expect(formatPreviewTotals(1)).toBe("Would rename 1 folder");
+    });
+
+    it("handles zero", () => {
+        expect(formatPreviewTotals(0)).toBe("Would rename 0 folders");
     });
 });

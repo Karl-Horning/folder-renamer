@@ -138,6 +138,31 @@ describe("runRenameJob", () => {
         ]);
     });
 
+    it("reports what would change without touching the filesystem when dryRun is true", async () => {
+        await fs.mkdir(path.join(targetDir, "Holiday Snaps (digital)"));
+
+        const logEntries = [];
+        const result = await runRenameJob(
+            targetDir,
+            dataDir,
+            (entry) => logEntries.push(entry),
+            true
+        );
+
+        expect(result).toEqual({ renamed: 1, errored: 0 });
+        expect(logEntries).toEqual([
+            {
+                type: "ok",
+                oldName: "Holiday Snaps (digital)",
+                newName: "Holiday Snaps",
+            },
+        ]);
+
+        // Nothing on disk should have actually changed.
+        const remaining = await fs.readdir(targetDir);
+        expect(remaining).toEqual(["Holiday Snaps (digital)"]);
+    });
+
     it("reports nothing and returns zero counts when no folder names need to change", async () => {
         await fs.mkdir(path.join(targetDir, "Holiday Snaps"));
 
