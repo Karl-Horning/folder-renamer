@@ -8,10 +8,17 @@ let allPatterns = [];
  * @param {string} dataDir - Directory containing the pattern JSON files.
  * @param {string} filename - Name of the JSON file to load.
  * @returns {Array<{text: string, replacement?: string, isRegex?: boolean, caseInsensitive?: boolean}>}
+ * @throws {Error} If the file can't be read or doesn't contain valid JSON.
  */
 function loadPatternsFile(dataDir, filename) {
-    const raw = fs.readFileSync(path.join(dataDir, filename), "utf8");
-    return JSON.parse(raw);
+    const filePath = path.join(dataDir, filename);
+    try {
+        return JSON.parse(fs.readFileSync(filePath, "utf8"));
+    } catch (err) {
+        throw new Error(
+            `Failed to load ${filename} from ${dataDir}: ${err.message}`
+        );
+    }
 }
 
 /**
@@ -27,7 +34,7 @@ export function initReplacePatterns(dataDir) {
         (pattern) => ({ ...pattern, replacement: "" })
     );
 
-    // Patterns that substitute a match with different text (e.g. separators,
+    // Patterns that substitute a match with different text (for example separators,
     // capitalisation, domain suffixes).
     const replacePatterns = loadPatternsFile(dataDir, "replacePatterns.json");
 

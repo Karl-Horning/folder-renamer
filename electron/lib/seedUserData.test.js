@@ -45,7 +45,7 @@ describe("seedDataDir", () => {
         ).toBe("[]");
     });
 
-    it("does nothing and reports not-seeded when the data directory already exists", async () => {
+    it("does nothing and reports not-seeded when every file already exists", async () => {
         await fs.mkdir(dataDir, { recursive: true });
         await fs.writeFile(
             path.join(dataDir, "prefixes.json"),
@@ -60,5 +60,27 @@ describe("seedDataDir", () => {
         expect(await fs.readFile(path.join(dataDir, "prefixes.json"), "utf8")).toBe(
             '["already", "here"]'
         );
+    });
+
+    it("self-heals a single missing file without touching the ones already there", async () => {
+        await fs.mkdir(dataDir, { recursive: true });
+        await fs.writeFile(
+            path.join(dataDir, "prefixes.json"),
+            '["already", "here"]'
+        );
+        // removePatterns.json deliberately left out, as if the user deleted it.
+
+        const seeded = await seedDataDir(dataDir, bundledDataDir, [
+            "prefixes.json",
+            "removePatterns.json",
+        ]);
+
+        expect(seeded).toBe(true);
+        expect(await fs.readFile(path.join(dataDir, "prefixes.json"), "utf8")).toBe(
+            '["already", "here"]'
+        );
+        expect(
+            await fs.readFile(path.join(dataDir, "removePatterns.json"), "utf8")
+        ).toBe("[]");
     });
 });

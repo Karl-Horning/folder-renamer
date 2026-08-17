@@ -6,6 +6,8 @@ import path from "path";
  *
  * @param {...string} relativePath - Sequence of path segments to the JSON file.
  * @returns {any} Parsed JSON content.
+ * @throws {Error} If the file can't be read or doesn't contain valid JSON —
+ * callers decide how to handle that — for example exiting for a CLI, or showing an error for a GUI.
  */
 export function loadJSON(...relativePath) {
     const fullPath = path.resolve(process.cwd(), ...relativePath);
@@ -13,7 +15,6 @@ export function loadJSON(...relativePath) {
         const data = fs.readFileSync(fullPath, "utf8");
         return JSON.parse(data);
     } catch (err) {
-        console.error(`Failed to load JSON from ${fullPath}:`, err);
-        process.exit(1);
+        throw new Error(`Failed to load JSON from ${fullPath}: ${err.message}`);
     }
 }

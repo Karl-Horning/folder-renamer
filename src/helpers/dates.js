@@ -62,12 +62,12 @@ const fullMonthMap = {
  * @returns {string} The string with all recognised date formats normalised.
  */
 function normaliseDates(name) {
-    // 0. Convert dot-separated ISO-style dates (e.g. 2022.03.23) → (2022-03-23)
+    // 0. Convert dot-separated ISO-style dates (for example, 2022.03.23) → (2022-03-23)
     name = name.replace(/\b(\d{4})\.(\d{1,2})\.(\d{1,2})\b/g, (_, y, m, d) => {
         return `(${y}-${pad(m)}-${pad(d)})`;
     });
 
-    // 1. Convert slashed short dates (e.g. 10/26/19 or 10⁄26⁄19) → (2019-10-26)
+    // 1. Convert slashed short dates (for example, 10/26/19 or 10⁄26⁄19) → (2019-10-26)
     name = name.replace(
         /(\d{1,2})[\/⁄](\d{1,2})[\/⁄](\d{2})/g,
         (_, m, d, y) => {
@@ -75,13 +75,13 @@ function normaliseDates(name) {
         }
     );
 
-    // 1b. Convert dotted short US-style dates (e.g. 03.28.13) → (2013-03-28)
+    // 1b. Convert dotted short US-style dates (for example, 03.28.13) → (2013-03-28)
     name = name.replace(/\b(\d{1,2})\.(\d{1,2})\.(\d{2})\b/g, (_, m, d, y) => {
         return `(${2000 + parseInt(y)}-${pad(m)}-${pad(d)})`;
     });
 
-    // 1c. Convert dotted full US-style dates (e.g. 03.23.2022) → (2022-03-23)
-    // Skips dates already wrapped in brackets, e.g. (07.11.2019), since those
+    // 1c. Convert dotted full US-style dates (for example, 03.23.2022) → (2022-03-23)
+    // Skips dates already wrapped in brackets, for example (07.11.2019), since those
     // are handled by rule 5 below using European (day-first) ordering.
     name = name.replace(
         /(?<!\()\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b(?!\))/g,
@@ -90,7 +90,7 @@ function normaliseDates(name) {
         }
     );
 
-    // 2. Convert written month (abbr.) dates (e.g. Nov 27, 2018 or Jun 11th, 2015) → (2018-11-27)
+    // 2. Convert written month (abbr.) dates (for example, Nov 27, 2018 or Jun 11th, 2015) → (2018-11-27)
     name = name.replace(
         /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[ .]+(\d{1,2})(?:st|nd|rd|th)?,[ ]*(\d{4})/gi,
         (_, mon, day, year) => {
@@ -99,8 +99,8 @@ function normaliseDates(name) {
         }
     );
 
-    // 3. Convert US-style hyphenated dates (e.g. 10-19-2018) → (2018-10-19)
-    // Skips dates already wrapped in brackets, e.g. (12-07-2020), since those
+    // 3. Convert US-style hyphenated dates (for example, 10-19-2018) → (2018-10-19)
+    // Skips dates already wrapped in brackets, for example (12-07-2020), since those
     // are handled by rule 4 below using European (day-first) ordering.
     name = name.replace(
         /(?<!\()\b(\d{1,2})-(\d{1,2})-(\d{4})\b(?!\))/g,
@@ -109,17 +109,17 @@ function normaliseDates(name) {
         }
     );
 
-    // 4. Convert incorrectly ordered bracketed dates (e.g. (12-07-2020)) → (2020-07-12)
+    // 4. Convert incorrectly ordered bracketed dates (for example, (12-07-2020)) → (2020-07-12)
     name = name.replace(/\((\d{1,2})-(\d{1,2})-(\d{4})\)/g, (_, d, m, y) => {
         return `(${y}-${pad(m)}-${pad(d)})`;
     });
 
-    // 5. Convert dotted European-style dates (e.g. (07.11.2019)) → (2019-11-07)
+    // 5. Convert dotted European-style dates (for example, (07.11.2019)) → (2019-11-07)
     name = name.replace(/\((\d{1,2})\.(\d{1,2})\.(\d{4})\)/g, (_, d, m, y) => {
         return `(${y}-${pad(m)}-${pad(d)})`;
     });
 
-    // 6. Wrap bare ISO-style dates (e.g. 2018-01-20) with brackets, unless already bracketed
+    // 6. Wrap bare ISO-style dates (for example, 2018-01-20) with brackets, unless already bracketed
     name = name.replace(
         /(?<!\()\b(\d{4})-(\d{2})-(\d{2})\b(?!\))/g,
         (_, y, m, d) => {
@@ -127,7 +127,7 @@ function normaliseDates(name) {
         }
     );
 
-    // 7. Convert written full month name dates (e.g. 16 February 2025) → (2025-02-16)
+    // 7. Convert written full month name dates (for example, 16 February 2025) → (2025-02-16)
     name = name.replace(
         /\b(\d{1,2})[ ]+(January|February|March|April|May|June|July|August|September|October|November|December)[ ]+(\d{4})\b/gi,
         (_, day, month, year) => {
@@ -136,7 +136,7 @@ function normaliseDates(name) {
         }
     );
 
-    // 7b. Convert full month name with ordinal day (e.g. 23rd March, 2022) → (2022-03-23)
+    // 7b. Convert full month name with ordinal day (for example, 23rd March, 2022) → (2022-03-23)
     name = name.replace(
         /\b(\d{1,2})(?:st|nd|rd|th)?[ ]+(January|February|March|April|May|June|July|August|September|October|November|December),?[ ]+(\d{4})\b/gi,
         (_, day, month, year) => {
