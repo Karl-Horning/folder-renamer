@@ -90,7 +90,7 @@ function createSettingsWindow() {
     settingsWindow = new BrowserWindow({
         title: "Manifest Settings",
         width: 420,
-        height: 260,
+        height: 330,
         resizable: false,
         parent: mainWindow ?? undefined,
         webPreferences: {
