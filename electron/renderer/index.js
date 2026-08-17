@@ -25,7 +25,7 @@ function render() {
         runBtn.disabled = false;
     } else {
         pathDisplay.textContent =
-            "No folder selected — open Settings to choose one.";
+            "No folder selected — open Preferences to choose one.";
         pathDisplay.classList.add("empty");
         previewBtn.disabled = true;
         runBtn.disabled = true;
@@ -123,6 +123,11 @@ window.api.onSettingsChanged((settings) => {
     directoryPath = settings.directoryPath;
     render();
 });
+// Trigger the real buttons rather than duplicating their logic — this keeps
+// the disabled-state guard and confirm dialog working identically whether
+// the action comes from a click or the menu/keyboard shortcut.
+window.api.onMenuPreview(() => previewBtn.click());
+window.api.onMenuRun(() => runBtn.click());
 
 window.api.getSettings().then((settings) => {
     directoryPath = settings.directoryPath;

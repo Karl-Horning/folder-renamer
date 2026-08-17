@@ -35,7 +35,7 @@ export function describeRenameError(err) {
  */
 export async function runRenameJob(directoryPath, dataDir, onLog, dryRun = false) {
     if (!directoryPath) {
-        throw new Error("No folder is set. Open Settings and choose one.");
+        throw new Error("No folder is set. Open Preferences and choose one.");
     }
 
     const prefixesToMove = await loadJSON(path.join(dataDir, "prefixes.json"));

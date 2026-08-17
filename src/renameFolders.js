@@ -18,13 +18,11 @@ export async function renameFolders(
     const entries = await fs.readdir(directoryPath, { withFileTypes: true });
 
     for (const entry of entries) {
-        // Only rename directories
         if (!entry.isDirectory()) continue;
 
         const oldName = entry.name;
         const newName = transformName(oldName, prefixesToMove);
 
-        // If the name hasn't changed, there's nothing to do
         if (newName === oldName) continue;
 
         // Dry run: report what would happen without touching the filesystem.

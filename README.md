@@ -65,12 +65,21 @@ Three files in `src/data/` drive the transform. None of them ship with defaults,
 
 ## Desktop app
 
-The Electron app runs the same rename logic as the CLI, with a window to trigger it and a Settings window to change the target folder — no `.env` file needed. Its settings and pattern config live in `~/Library/Application Support/Folder Renamer/`, seeded from `src/data/` the first time it runs. **Preview** shows what would be renamed without touching anything, the same as the CLI's `--dry-run`.
+The Electron app runs the same rename logic as the CLI, with a window to trigger it and a Preferences window to change the target folder — no `.env` file needed. Its settings and pattern config live in `~/Library/Application Support/Folder Renamer/`, seeded from `src/data/` the first time it runs. **Preview** shows what would be renamed without touching anything, the same as the CLI's `--dry-run`.
 
 ```bash
 npm run electron   # run in development
 npm run dist        # build a distributable .app
 ```
+
+Keyboard shortcuts (also in the menu bar):
+
+| Shortcut | Action |
+| --- | --- |
+| `Cmd+,` | Open Preferences |
+| `Cmd+Shift+P` | Preview |
+| `Cmd+Return` | Process Batch |
+| `Cmd+Shift+R` | Reveal Config Folder |
 
 ## Scripts
 

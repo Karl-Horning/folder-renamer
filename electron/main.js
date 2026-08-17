@@ -120,7 +120,19 @@ function buildMenu() {
                 },
                 {
                     label: "Reveal Config Folder",
+                    accelerator: "Cmd+Shift+R",
                     click: () => shell.openPath(userDataDir),
+                },
+                { type: "separator" },
+                {
+                    label: "Preview",
+                    accelerator: "Cmd+Shift+P",
+                    click: () => mainWindow?.webContents.send("menu:preview"),
+                },
+                {
+                    label: "Process Batch",
+                    accelerator: "Cmd+Return",
+                    click: () => mainWindow?.webContents.send("menu:run"),
                 },
                 { type: "separator" },
                 { role: "quit" },

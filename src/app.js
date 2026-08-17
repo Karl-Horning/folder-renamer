@@ -7,7 +7,6 @@ import { loadJSON } from "./helpers/loadJSON.js";
 import { initReplacePatterns } from "./helpers/replacePatterns.js";
 import { renameFolders } from "./renameFolders.js";
 
-// Load environment variables from .env file
 dotenv.config();
 
 // Get __dirname in ES modules
@@ -18,15 +17,12 @@ const __dirname = path.dirname(__filename);
  * Validates configuration, loads the prefix list, and renames folders in the target directory.
  */
 async function main() {
-    // Validate that required environment variables are set
     validateEnv(["DIRECTORY_PATH"]);
 
-    // Resolve necessary paths
     const directoryPath = process.env.DIRECTORY_PATH;
     const dataDir = path.join(__dirname, "data");
     const dryRun = process.argv.includes("--dry-run");
 
-    // Load prefixes and remove/replace patterns
     let prefixesToMove;
     try {
         prefixesToMove = await loadJSON(path.join(dataDir, "prefixes.json"));
@@ -60,5 +56,4 @@ async function main() {
     }
 }
 
-// Run the script
 main();
