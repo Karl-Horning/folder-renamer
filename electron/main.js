@@ -85,7 +85,7 @@ function createSettingsWindow() {
     }
 
     settingsWindow = new BrowserWindow({
-        title: "Manifest Settings",
+        title: "Preferences",
         icon: APP_ICON,
         width: 420,
         height: 330,
