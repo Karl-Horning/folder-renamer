@@ -75,10 +75,8 @@ export function applyReplacePatterns(name) {
             ? new RegExp(text, flags)
             : new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), flags);
 
-        // Apply the replacement globally to the name string.
         name = name.replace(pattern, replacement);
     }
 
-    // Trim any leading/trailing whitespace and return the result.
     return name.trim();
 }

@@ -20,4 +20,16 @@ contextBridge.exposeInMainWorld("api", {
         ipcRenderer.on("settings:changed", listener);
         return () => ipcRenderer.removeListener("settings:changed", listener);
     },
+
+    onMenuPreview: (callback) => {
+        const listener = () => callback();
+        ipcRenderer.on("menu:preview", listener);
+        return () => ipcRenderer.removeListener("menu:preview", listener);
+    },
+
+    onMenuRun: (callback) => {
+        const listener = () => callback();
+        ipcRenderer.on("menu:run", listener);
+        return () => ipcRenderer.removeListener("menu:run", listener);
+    },
 });

@@ -74,7 +74,7 @@ describe("runRenameJob", () => {
 
     it("throws when no directory path is given", async () => {
         await expect(runRenameJob("", dataDir, () => {})).rejects.toThrow(
-            "No folder is set. Open Settings and choose one."
+            "No folder is set. Open Preferences and choose one."
         );
     });
 
