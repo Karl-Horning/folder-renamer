@@ -131,3 +131,6 @@ dist
 
 # Folders
 src/data/
+
+# macOS files
+.DS_Store
