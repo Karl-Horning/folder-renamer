@@ -44,6 +44,7 @@
     },
     "mac": {
       "identity": null,
+      "icon": "build/icon.png",
       "target": [
         "dmg",
         "zip"

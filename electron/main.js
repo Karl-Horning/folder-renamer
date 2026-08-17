@@ -25,6 +25,11 @@ const PATTERN_FILES = [
     "replacePatterns.json",
 ];
 
+// electron-builder generates the packaged app's .icns from this same file at
+// build time — setting it here too means dev mode (`npm run electron`) shows
+// the real icon in the Dock instead of the default Electron icon.
+const APP_ICON = path.join(__dirname, "..", "build", "icon.png");
+
 const store = new Store({
     projectName: "folder-renamer",
     defaults: { directoryPath: "" },
@@ -65,10 +70,13 @@ async function seedUserData() {
 function createMainWindow() {
     mainWindow = new BrowserWindow({
         title: "Folder Renamer",
+        icon: APP_ICON,
         width: 460,
         height: 440,
         minWidth: 400,
         minHeight: 360,
+        backgroundColor: "#fdfdfb",
+        show: false,
         webPreferences: {
             preload: path.join(__dirname, "preload.cjs"),
             contextIsolation: true,
@@ -76,6 +84,7 @@ function createMainWindow() {
         },
     });
     mainWindow.loadFile(path.join(__dirname, "renderer", "index.html"));
+    mainWindow.once("ready-to-show", () => mainWindow?.show());
     mainWindow.on("closed", () => {
         mainWindow = null;
     });
@@ -89,9 +98,12 @@ function createSettingsWindow() {
 
     settingsWindow = new BrowserWindow({
         title: "Manifest Settings",
+        icon: APP_ICON,
         width: 420,
         height: 330,
         resizable: false,
+        backgroundColor: "#fdfdfb",
+        show: false,
         parent: mainWindow ?? undefined,
         webPreferences: {
             preload: path.join(__dirname, "preload.cjs"),
@@ -100,6 +112,7 @@ function createSettingsWindow() {
         },
     });
     settingsWindow.loadFile(path.join(__dirname, "renderer", "settings.html"));
+    settingsWindow.once("ready-to-show", () => settingsWindow?.show());
     settingsWindow.on("closed", () => {
         settingsWindow = null;
     });
