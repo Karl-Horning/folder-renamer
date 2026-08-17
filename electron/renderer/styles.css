@@ -14,16 +14,28 @@
     box-sizing: border-box;
 }
 
+html,
+body {
+    height: 100%;
+}
+
 body {
     margin: 0;
     background: var(--bg);
     color: var(--fg);
     font-family: "Helvetica Neue", Arial, sans-serif;
     font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 main {
     padding: 1.25rem 1.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }
 
 .label {
@@ -103,7 +115,8 @@ main {
     font-family: ui-monospace, "SF Mono", monospace;
     font-size: 0.76rem;
     border-top: 1.5px solid var(--fg);
-    max-height: 220px;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
 }
 
