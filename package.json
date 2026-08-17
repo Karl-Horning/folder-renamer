@@ -1,7 +1,7 @@
 {
   "name": "folder-renamer",
   "version": "1.0.0",
-  "description": "",
+  "description": "Batch-renames folders to clean up dates, image counts, and known prefixes in messy photo and scan archives — as a CLI or a desktop app.",
   "homepage": "https://github.com/Karl-Horning/folder-renamer#readme",
   "bugs": {
     "url": "https://github.com/Karl-Horning/folder-renamer/issues"
