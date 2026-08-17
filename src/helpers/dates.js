@@ -81,9 +81,14 @@ function normaliseDates(name) {
     });
 
     // 1c. Convert dotted full US-style dates (e.g. 03.23.2022) → (2022-03-23)
-    name = name.replace(/\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/g, (_, m, d, y) => {
-        return `(${y}-${pad(m)}-${pad(d)})`;
-    });
+    // Skips dates already wrapped in brackets, e.g. (07.11.2019), since those
+    // are handled by rule 5 below using European (day-first) ordering.
+    name = name.replace(
+        /(?<!\()\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b(?!\))/g,
+        (_, m, d, y) => {
+            return `(${y}-${pad(m)}-${pad(d)})`;
+        }
+    );
 
     // 2. Convert written month (abbr.) dates (e.g. Nov 27, 2018 or Jun 11th, 2015) → (2018-11-27)
     name = name.replace(
@@ -95,9 +100,14 @@ function normaliseDates(name) {
     );
 
     // 3. Convert US-style hyphenated dates (e.g. 10-19-2018) → (2018-10-19)
-    name = name.replace(/\b(\d{1,2})-(\d{1,2})-(\d{4})\b/g, (_, m, d, y) => {
-        return `(${y}-${pad(m)}-${pad(d)})`;
-    });
+    // Skips dates already wrapped in brackets, e.g. (12-07-2020), since those
+    // are handled by rule 4 below using European (day-first) ordering.
+    name = name.replace(
+        /(?<!\()\b(\d{1,2})-(\d{1,2})-(\d{4})\b(?!\))/g,
+        (_, m, d, y) => {
+            return `(${y}-${pad(m)}-${pad(d)})`;
+        }
+    );
 
     // 4. Convert incorrectly ordered bracketed dates (e.g. (12-07-2020)) → (2020-07-12)
     name = name.replace(/\((\d{1,2})-(\d{1,2})-(\d{4})\)/g, (_, d, m, y) => {
