@@ -5,7 +5,9 @@ A Node.js CLI that batch-renames folders — cleaning up dates, image counts, an
 ## Tech stack
 
 - Node.js (ES modules)
-- [dotenv](https://www.npmjs.com/package/dotenv) for environment configuration
+- [Electron](https://www.electronjs.org/) for the desktop app
+- [electron-store](https://www.npmjs.com/package/electron-store) for persisted app settings
+- [dotenv](https://www.npmjs.com/package/dotenv) for the CLI's environment configuration
 - [Vitest](https://vitest.dev/) for testing
 
 ## Notable decisions
@@ -13,6 +15,7 @@ A Node.js CLI that batch-renames folders — cleaning up dates, image counts, an
 - **In-place renaming** — folders are renamed directly, with no undo. Back up before running.
 - **Remove vs. replace patterns are separate files** — `removePatterns.json` strips text entirely (the replacement is always empty), `replacePatterns.json` substitutes text with something else. Splitting them avoids repeating `"replacement": ""` across dozens of entries.
 - **Pattern data isn't committed to git** — `src/data/*.json` holds hand-curated, personal scrubbing rules (scene-release tags, download-site cruft) that don't belong in a public repo. It's gitignored, so each clone builds its own list.
+- **The desktop app copies its config out of the app bundle on first run** — once packaged, `src/data/` is read-only, so the Electron app copies it into its own userData folder the first time it starts, and reads/writes there from then on. That way, app updates never overwrite your real, evolving pattern list.
 
 ## Local development
 
@@ -57,11 +60,22 @@ Three files in `src/data/` drive the transform. None of them ship with defaults,
   ]
   ```
 
+## Desktop app
+
+The Electron app runs the same rename logic as the CLI, with a window to trigger it and a Settings window to change the target folder — no `.env` file needed. Its settings and pattern config live in `~/Library/Application Support/Folder Renamer/`, seeded from `src/data/` the first time it runs.
+
+```bash
+npm run electron   # run in development
+npm run dist        # build a distributable .app
+```
+
 ## Scripts
 
 | Script | Description |
 | --- | --- |
 | `npm start` | Run the folder-renaming CLI |
+| `npm run electron` | Run the desktop app |
+| `npm run dist` | Build a distributable `.app` |
 | `npm test` | Run the test suite once |
 | `npm run test:watch` | Re-run tests on file changes |
 

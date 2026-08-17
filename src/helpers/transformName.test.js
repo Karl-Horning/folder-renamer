@@ -1,9 +1,16 @@
-import { describe, expect, it } from "vitest";
+import path from "path";
 
+import { beforeAll, describe, expect, it } from "vitest";
+
+import { initReplacePatterns } from "./replacePatterns.js";
 import { transformName } from "./transformName.js";
 
 describe("transformName", () => {
     const prefixes = ["MyPhotos", "FamilyPhotos"];
+
+    beforeAll(() => {
+        initReplacePatterns(path.resolve(process.cwd(), "src", "data"));
+    });
 
     it("normalises an image count and moves it to the end", () => {
         expect(transformName("Holiday Snaps 238x", prefixes)).toBe(
