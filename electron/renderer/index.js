@@ -72,8 +72,8 @@ previewBtn.addEventListener("click", async () => {
     totalsEl.textContent = "";
 
     try {
-        const { renamed } = await window.api.previewRename();
-        emptyState.textContent = previewEmptyStateMessage(renamed);
+        const { renamed, hasConfig } = await window.api.previewRename();
+        emptyState.textContent = previewEmptyStateMessage(renamed, hasConfig);
         totalsEl.textContent = formatPreviewTotals(renamed);
     } catch (err) {
         emptyState.textContent = "No preview yet.";
@@ -101,8 +101,8 @@ runBtn.addEventListener("click", async () => {
     totalsEl.textContent = "";
 
     try {
-        const { renamed, errored } = await window.api.runRename();
-        emptyState.textContent = emptyStateMessage(renamed, errored);
+        const { renamed, errored, hasConfig } = await window.api.runRename();
+        emptyState.textContent = emptyStateMessage(renamed, errored, hasConfig);
         totalsEl.textContent = formatTotals(renamed, errored);
     } catch (err) {
         emptyState.textContent = "No folders processed yet.";

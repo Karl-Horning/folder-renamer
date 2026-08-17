@@ -1,7 +1,10 @@
 import path from "path";
 
 import { loadJSON } from "../../src/helpers/loadJSON.js";
-import { initReplacePatterns } from "../../src/helpers/replacePatterns.js";
+import {
+    hasAnyPatterns,
+    initReplacePatterns,
+} from "../../src/helpers/replacePatterns.js";
 import { renameFolders } from "../../src/renameFolders.js";
 
 const FRIENDLY_RENAME_ERRORS = {
@@ -31,7 +34,7 @@ export function describeRenameError(err) {
  * @param {string} dataDir - Directory containing prefixes.json and the pattern files.
  * @param {(entry: {type: "ok" | "error", oldName: string, newName: string, message?: string}) => void} onLog - Called once per rename attempt.
  * @param {boolean} [dryRun] - If true, report the changes without applying them.
- * @returns {Promise<{renamed: number, errored: number}>} Final counts for the batch.
+ * @returns {Promise<{renamed: number, errored: number, hasConfig: boolean}>} Final counts for the batch, plus whether any rename rules are configured at all.
  */
 export async function runRenameJob(directoryPath, dataDir, onLog, dryRun = false) {
     if (!directoryPath) {
@@ -40,6 +43,7 @@ export async function runRenameJob(directoryPath, dataDir, onLog, dryRun = false
 
     const prefixesToMove = await loadJSON(path.join(dataDir, "prefixes.json"));
     initReplacePatterns(dataDir);
+    const hasConfig = prefixesToMove.length > 0 || hasAnyPatterns();
 
     let renamed = 0;
     let errored = 0;
@@ -61,5 +65,5 @@ export async function runRenameJob(directoryPath, dataDir, onLog, dryRun = false
         },
     });
 
-    return { renamed, errored };
+    return { renamed, errored, hasConfig };
 }
