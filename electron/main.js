@@ -81,6 +81,15 @@ function createMainWindow() {
     });
 }
 
+/**
+ * Opens the config folder in Finder, and shows an error box if it can't be opened.
+ * @returns {Promise<void>}
+ */
+async function revealConfigFolder() {
+    const error = await shell.openPath(userDataDir);
+    if (error) dialog.showErrorBox("Can't open the config folder", error);
+}
+
 function buildMenu() {
     const template = [
         ...(isMac ? [{ role: "appMenu" }] : []),
@@ -112,7 +121,7 @@ function buildMenu() {
                 {
                     label: "Reveal Config Folder",
                     accelerator: "CmdOrCtrl+Shift+R",
-                    click: () => shell.openPath(userDataDir),
+                    click: revealConfigFolder,
                 },
                 { type: "separator" },
                 isMac ? { role: "close" } : { role: "quit" },
@@ -173,8 +182,19 @@ ipcMain.on("menu:state", (_event, { canChoose, canRun }) => {
     applyMenuState({ canChoose: Boolean(canChoose), canRun: Boolean(canRun) });
 });
 
-ipcMain.handle("config:reveal", () => {
-    shell.openPath(userDataDir);
+ipcMain.handle("config:reveal", revealConfigFolder);
+
+ipcMain.handle("run:confirm", async () => {
+    const directoryPath = store.get("directoryPath");
+    const { response } = await dialog.showMessageBox(mainWindow ?? undefined, {
+        type: "warning",
+        message: `Rename folders in "${path.basename(directoryPath)}"?`,
+        detail: `${directoryPath}\n\nThis can't be undone.`,
+        buttons: ["Rename", "Cancel"],
+        defaultId: 1,
+        cancelId: 1,
+    });
+    return response === 0;
 });
 
 ipcMain.handle("rename:run", async (event) => {
@@ -234,6 +254,7 @@ app.on("before-quit", (event) => {
     if (activeRenamePromise && !quittingAfterRename) {
         event.preventDefault();
         quittingAfterRename = true;
+        mainWindow?.webContents.send("app:quit-waiting");
         waitForActiveOperation(activeRenamePromise, 15_000).then(() =>
             app.quit()
         );

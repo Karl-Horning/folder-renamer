@@ -5,6 +5,7 @@ import {
     cleanIpcError,
     emptyStateMessage,
     formatLogEntry,
+    formatProgress,
     formatPreviewTotals,
     formatTotals,
     previewEmptyStateMessage,
@@ -27,12 +28,12 @@ describe("emptyStateMessage", () => {
         );
     });
 
-    it("falls back to the generic pre-run message when there was at least one rename", () => {
-        expect(emptyStateMessage(1, 0, false)).toBe("No folders processed yet.");
+    it("returns no message when there was at least one rename", () => {
+        expect(emptyStateMessage(1, 0, false)).toBe("");
     });
 
-    it("falls back to the generic pre-run message when there was at least one error", () => {
-        expect(emptyStateMessage(0, 1, false)).toBe("No folders processed yet.");
+    it("returns no message when there was at least one error", () => {
+        expect(emptyStateMessage(0, 1, false)).toBe("");
     });
 });
 
@@ -88,8 +89,8 @@ describe("previewEmptyStateMessage", () => {
         );
     });
 
-    it("falls back to the generic pre-preview message when there's at least one result", () => {
-        expect(previewEmptyStateMessage(3, false)).toBe("No preview yet.");
+    it("returns no message when there's at least one result", () => {
+        expect(previewEmptyStateMessage(3, false)).toBe("");
     });
 });
 
@@ -118,5 +119,15 @@ describe("cleanIpcError", () => {
 
     it("leaves an unwrapped message untouched", () => {
         expect(cleanIpcError("Something broke")).toBe("Something broke");
+    });
+});
+
+describe("formatProgress", () => {
+    it("shows only the label before any rows have arrived", () => {
+        expect(formatProgress("Processing…", 0)).toBe("Processing…");
+    });
+
+    it("adds the running count once rows arrive", () => {
+        expect(formatProgress("Processing…", 12)).toBe("Processing… 12 so far");
     });
 });

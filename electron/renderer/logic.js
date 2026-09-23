@@ -5,15 +5,21 @@
 export const NO_RULES_CONFIGURED_MESSAGE =
     "No rename rules configured yet — click Reveal Config Folder to add some.";
 
+/** Message shown in the log area before anything has been processed. */
+export const NO_RESULTS_MESSAGE = "No folders processed yet.";
+
+/** Message shown while the app waits for a running batch to finish before quitting. */
+export const QUIT_WAITING_MESSAGE = "Finishing this batch, then quitting…";
+
 /**
  * Picks the message shown in the log area's empty-state slot after a run completes.
  * @param {number} renamed - Folders successfully renamed.
  * @param {number} errored - Folders that failed to rename.
  * @param {boolean} [hasConfig] - Whether any rename rules (prefixes or patterns) are configured.
- * @returns {string} The message to display.
+ * @returns {string} The message to display, or an empty string when the log has rows.
  */
 export function emptyStateMessage(renamed, errored, hasConfig = true) {
-    if (renamed !== 0 || errored !== 0) return "No folders processed yet.";
+    if (renamed !== 0 || errored !== 0) return "";
     return hasConfig
         ? "Nothing to rename — every folder already matches its target name."
         : NO_RULES_CONFIGURED_MESSAGE;
@@ -44,10 +50,10 @@ export function formatTotals(renamed, errored) {
  * Picks the message shown in the log area's empty-state slot after a preview completes.
  * @param {number} count - Folders that would be renamed.
  * @param {boolean} [hasConfig] - Whether any rename rules (prefixes or patterns) are configured.
- * @returns {string} The message to display.
+ * @returns {string} The message to display, or an empty string when the log has rows.
  */
 export function previewEmptyStateMessage(count, hasConfig = true) {
-    if (count !== 0) return "No preview yet.";
+    if (count !== 0) return "";
     return hasConfig
         ? "Nothing would change — every folder already matches its target name."
         : NO_RULES_CONFIGURED_MESSAGE;
@@ -73,4 +79,14 @@ export function cleanIpcError(message) {
         /^Error invoking remote method '[^']*': (Error: )?/,
         ""
     );
+}
+
+/**
+ * Formats the running count shown while a batch or preview is in progress.
+ * @param {string} label - The activity, for example "Processing…".
+ * @param {number} count - Log rows received so far.
+ * @returns {string} The status text.
+ */
+export function formatProgress(label, count) {
+    return count === 0 ? label : `${label} ${count} so far`;
 }

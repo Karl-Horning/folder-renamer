@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld("api", {
     chooseDirectory: () => ipcRenderer.invoke("dialog:chooseDirectory"),
     getPathForFile: (file) => webUtils.getPathForFile(file),
     revealConfigFolder: () => ipcRenderer.invoke("config:reveal"),
+    confirmRun: () => ipcRenderer.invoke("run:confirm"),
     runRename: () => ipcRenderer.invoke("rename:run"),
     previewRename: () => ipcRenderer.invoke("rename:preview"),
 
@@ -15,6 +16,12 @@ contextBridge.exposeInMainWorld("api", {
         const listener = (_event, entry) => callback(entry);
         ipcRenderer.on("rename:log", listener);
         return () => ipcRenderer.removeListener("rename:log", listener);
+    },
+
+    onQuitWaiting: (callback) => {
+        const listener = () => callback();
+        ipcRenderer.on("app:quit-waiting", listener);
+        return () => ipcRenderer.removeListener("app:quit-waiting", listener);
     },
 
     onMenuChoose: (callback) => {

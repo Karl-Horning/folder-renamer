@@ -97,6 +97,21 @@ describe("runRenameJob", () => {
         ).rejects.toThrow(/Failed to load removePatterns\.json/);
     });
 
+    it("throws a readable message when the folder no longer exists", async () => {
+        await expect(
+            runRenameJob(path.join(tmpDir, "missing"), dataDir, () => {})
+        ).rejects.toThrow("That folder no longer exists.");
+    });
+
+    it("throws a readable message when the chosen path is a file", async () => {
+        const filePath = path.join(tmpDir, "note.txt");
+        await fs.writeFile(filePath, "hello");
+
+        await expect(
+            runRenameJob(filePath, dataDir, () => {})
+        ).rejects.toThrow("That is a file, not a folder.");
+    });
+
     it("renames folders, reports each attempt, and returns the final counts", async () => {
         await fs.mkdir(path.join(targetDir, "Holiday Snaps (digital)"));
 

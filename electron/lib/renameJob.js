@@ -25,6 +25,13 @@ export function describeRenameError(err) {
     return FRIENDLY_RENAME_ERRORS[err.code] ?? err.code ?? err.message;
 }
 
+const FRIENDLY_DIRECTORY_ERRORS = {
+    ENOENT: "That folder no longer exists.",
+    ENOTDIR: "That is a file, not a folder.",
+    EACCES: "Permission denied for that folder.",
+    EPERM: "Permission denied for that folder.",
+};
+
 /**
  * Runs a rename batch against a directory using the pattern config in a data
  * directory, reporting each attempt via onLog and returning the final counts.
@@ -48,22 +55,27 @@ export async function runRenameJob(directoryPath, dataDir, onLog, dryRun = false
     let renamed = 0;
     let errored = 0;
 
-    await renameFolders(directoryPath, prefixesToMove, {
-        dryRun,
-        onRename: (oldName, newName) => {
-            renamed += 1;
-            onLog({ type: "ok", oldName, newName });
-        },
-        onError: (oldName, newName, err) => {
-            errored += 1;
-            onLog({
-                type: "error",
-                oldName,
-                newName,
-                message: describeRenameError(err),
-            });
-        },
-    });
+    try {
+        await renameFolders(directoryPath, prefixesToMove, {
+            dryRun,
+            onRename: (oldName, newName) => {
+                renamed += 1;
+                onLog({ type: "ok", oldName, newName });
+            },
+            onError: (oldName, newName, err) => {
+                errored += 1;
+                onLog({
+                    type: "error",
+                    oldName,
+                    newName,
+                    message: describeRenameError(err),
+                });
+            },
+        });
+    } catch (err) {
+        const message = FRIENDLY_DIRECTORY_ERRORS[err.code];
+        throw message ? new Error(message) : err;
+    }
 
     return { renamed, errored, hasConfig };
 }
