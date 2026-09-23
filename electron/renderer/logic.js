@@ -3,7 +3,7 @@
  * rules are configured at all, rather than because folders are already clean.
  */
 export const NO_RULES_CONFIGURED_MESSAGE =
-    "No rename rules configured yet — open Reveal Config Folder from the menu to add some.";
+    "No rename rules configured yet — click Reveal Config Folder to add some.";
 
 /**
  * Picks the message shown in the log area's empty-state slot after a run completes.
@@ -61,4 +61,16 @@ export function previewEmptyStateMessage(count, hasConfig = true) {
  */
 export function formatPreviewTotals(count) {
     return `Would rename ${count} folder${count === 1 ? "" : "s"}`;
+}
+
+/**
+ * Strips Electron's remote-method wrapper from an IPC error message.
+ * @param {string} message - The error message as received in the renderer.
+ * @returns {string} The message without the IPC wrapper.
+ */
+export function cleanIpcError(message) {
+    return message.replace(
+        /^Error invoking remote method '[^']*': (Error: )?/,
+        ""
+    );
 }

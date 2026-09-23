@@ -23,6 +23,27 @@ delete launchEnv.ELECTRON_RUN_AS_NODE;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Chooses a folder through the Choose… button, with the native dialog stubbed to return the given folder.
+ * @param {import("playwright-core").ElectronApplication} app - The running app.
+ * @param {import("playwright-core").Page} page - The main window.
+ * @param {string} dir - The folder the stubbed dialog should return.
+ */
+async function chooseFolder(app, page, dir) {
+    await app.evaluate(({ dialog }, chosen) => {
+        dialog.showOpenDialog = async () => ({
+            canceled: false,
+            filePaths: [chosen],
+        });
+    }, dir);
+    await page.click("#choose-btn");
+    await page.waitForFunction(
+        (expected) =>
+            document.getElementById("path-display").textContent === expected,
+        dir
+    );
+}
+
 describe("Folder Renamer app (E2E)", () => {
     let app;
     let scratchDir;
@@ -96,7 +117,35 @@ describe("Folder Renamer app (E2E)", () => {
         expect(runDisabled).toBe(true);
     });
 
-    it("runs a full batch: save a folder in Settings, then rename its contents", async () => {
+    it("rejects a chosen path that isn't a folder and keeps the current state", async () => {
+        scratchDir = await fs.mkdtemp(
+            path.join(os.tmpdir(), "folder-renamer-e2e-")
+        );
+        const filePath = path.join(scratchDir, "note.txt");
+        await fs.writeFile(filePath, "hello");
+
+        const mainPage = app.windows()[0];
+        await app.evaluate(({ dialog }, chosen) => {
+            dialog.showOpenDialog = async () => ({
+                canceled: false,
+                filePaths: [chosen],
+            });
+        }, filePath);
+        await mainPage.click("#choose-btn");
+        await mainPage.waitForSelector("#path-hint:not([hidden])");
+
+        const hint = await mainPage.textContent("#path-hint");
+        const pathText = await mainPage.textContent("#path-display");
+        const runDisabled = await mainPage.evaluate(
+            () => document.getElementById("run-btn").disabled
+        );
+
+        expect(hint).toBe("That is a file, not a folder.");
+        expect(pathText).toMatch(/No folder selected/);
+        expect(runDisabled).toBe(true);
+    });
+
+    it("runs a full batch: choose a folder, then rename its contents", async () => {
         scratchDir = await fs.mkdtemp(
             path.join(os.tmpdir(), "folder-renamer-e2e-")
         );
@@ -106,21 +155,7 @@ describe("Folder Renamer app (E2E)", () => {
 
         const mainPage = app.windows()[0];
 
-        // Open Settings and save the folder. The native folder picker can't be
-        // driven from here, so save directly via the same IPC call the picker
-        // flow would resolve to — this still exercises the real save/broadcast
-        // path, just skips the OS dialog itself.
-        await mainPage.click("#settings-btn");
-        await sleep(500);
-        const settingsPage = app
-            .windows()
-            .find((w) => w.url().includes("settings.html"));
-        await settingsPage.evaluate(
-            (dir) => window.api.saveSettings({ directoryPath: dir }),
-            scratchDir
-        );
-        await settingsPage.close();
-        await sleep(300);
+        await chooseFolder(app, mainPage, scratchDir);
 
         const mainPathText = await mainPage.evaluate(
             () => document.getElementById("path-display").textContent
@@ -150,17 +185,7 @@ describe("Folder Renamer app (E2E)", () => {
 
         const mainPage = app.windows()[0];
 
-        await mainPage.click("#settings-btn");
-        await sleep(500);
-        const settingsPage = app
-            .windows()
-            .find((w) => w.url().includes("settings.html"));
-        await settingsPage.evaluate(
-            (dir) => window.api.saveSettings({ directoryPath: dir }),
-            scratchDir
-        );
-        await settingsPage.close();
-        await sleep(300);
+        await chooseFolder(app, mainPage, scratchDir);
 
         await mainPage.click("#preview-btn");
         await sleep(800);
@@ -207,17 +232,7 @@ describe("Folder Renamer app (E2E)", () => {
         try {
             await fs.rm(prefixesPath);
 
-            await mainPage.click("#settings-btn");
-            await sleep(500);
-            const settingsPage = app
-                .windows()
-                .find((w) => w.url().includes("settings.html"));
-            await settingsPage.evaluate(
-                (dir) => window.api.saveSettings({ directoryPath: dir }),
-                scratchDir
-            );
-            await settingsPage.close();
-            await sleep(300);
+            await chooseFolder(app, mainPage, scratchDir);
 
             mainPage.once("dialog", (dialog) => dialog.accept());
             await mainPage.click("#run-btn");
@@ -261,17 +276,7 @@ describe("Folder Renamer app (E2E)", () => {
                 await fs.writeFile(path.join(dataDir, file), "[]");
             }
 
-            await mainPage.click("#settings-btn");
-            await sleep(500);
-            const settingsPage = app
-                .windows()
-                .find((w) => w.url().includes("settings.html"));
-            await settingsPage.evaluate(
-                (dir) => window.api.saveSettings({ directoryPath: dir }),
-                scratchDir
-            );
-            await settingsPage.close();
-            await sleep(300);
+            await chooseFolder(app, mainPage, scratchDir);
 
             await mainPage.click("#preview-btn");
             await sleep(800);
@@ -280,7 +285,7 @@ describe("Folder Renamer app (E2E)", () => {
                 () => document.getElementById("empty-state").textContent
             );
             expect(emptyStateText).toBe(
-                "No rename rules configured yet — open Reveal Config Folder from the menu to add some."
+                "No rename rules configured yet — click Reveal Config Folder to add some."
             );
         } finally {
             for (const file of patternFiles) {

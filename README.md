@@ -75,7 +75,11 @@ Add `--dry-run` to preview what would be renamed without touching anything: `npm
 
 ## Desktop app
 
-The Electron app runs the same rename logic as the CLI, with a window to trigger it and a Preferences window to change the target folder — no `.env` file needed. Its settings and pattern config live in `~/Library/Application Support/Folder Renamer/`, seeded from `src/data/` the first time it runs. **Preview** shows what would be renamed without touching anything, the same as the CLI's `--dry-run`.
+The desktop app runs the same rename logic as the CLI, on a folder you choose in the app.
+
+Its settings and rule files are in `~/Library/Application Support/Folder Renamer/`. They are copied from `src/data/` the first time the app runs.
+
+**Preview** lists what would be renamed, like the CLI's `--dry-run`.
 
 ```bash
 npm run electron   # run in development
@@ -84,15 +88,15 @@ npm run dist       # build a distributable .app
 
 **First run:**
 
-1. Open **Preferences** (`Cmd+,`) and choose the folder you want to clean up.
-2. The app starts with no rename rules — **Preview** and **Process Batch** won't find anything to do until you add some. Open **Reveal Config Folder** (`Cmd+Shift+R`) from the menu and edit `prefixes.json`, `removePatterns.json`, and `replacePatterns.json` there; see [Configuration](#configuration) above for the format each one expects.
+1. Click **Choose…** (`Cmd+O`), or drag a folder onto the path, to pick the folder you want to clean up.
+2. The app starts with no rename rules — **Preview** and **Process Batch** won't find anything to do until you add some. Click **Reveal Config Folder** (`Cmd+Shift+R`) and edit `prefixes.json`, `removePatterns.json`, and `replacePatterns.json` there; see [Configuration](#configuration) above for the format each one expects.
 3. Click **Preview** to check what would change, then **Process Batch** to actually rename.
 
 Keyboard shortcuts (also in the menu bar):
 
 | Shortcut | Action |
 | --- | --- |
-| `Cmd+,` | Open Preferences |
+| `Cmd+O` | Choose Folder |
 | `Cmd+Shift+P` | Preview |
 | `Cmd+Return` | Process Batch |
 | `Cmd+Shift+R` | Reveal Config Folder |
