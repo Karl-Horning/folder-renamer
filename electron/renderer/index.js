@@ -1,8 +1,11 @@
 import {
+    NO_RESULTS_MESSAGE,
+    QUIT_WAITING_MESSAGE,
     cleanIpcError,
     emptyStateMessage,
     formatLogEntry,
     formatPreviewTotals,
+    formatProgress,
     formatTotals,
     previewEmptyStateMessage,
 } from "./logic.js";
@@ -13,6 +16,7 @@ const runBtn = document.getElementById("run-btn");
 const chooseBtn = document.getElementById("choose-btn");
 const configBtn = document.getElementById("config-btn");
 const pathHint = document.getElementById("path-hint");
+const runError = document.getElementById("run-error");
 const logTable = document.getElementById("log-table");
 const emptyState = document.getElementById("empty-state");
 const totalsEl = document.getElementById("totals");
@@ -20,6 +24,9 @@ const totalsEl = document.getElementById("totals");
 let directoryPath = "";
 let isPreviewMode = false;
 let isBusy = false;
+let isQuitting = false;
+let progressLabel = "";
+let rowCount = 0;
 
 function render() {
     if (directoryPath) {
@@ -71,13 +78,32 @@ async function applyDirectory(candidate) {
         directoryPath = saved.directoryPath;
         hidePathHint();
         clearLog();
-        emptyState.textContent = "No folders processed yet.";
-        emptyState.style.display = "";
+        hideRunError();
+        showEmptyState(NO_RESULTS_MESSAGE);
         totalsEl.textContent = "";
         render();
     } catch (err) {
         showPathHint(cleanIpcError(err.message));
     }
+}
+
+function showRunError(message) {
+    runError.textContent = message;
+    runError.hidden = false;
+}
+
+function hideRunError() {
+    runError.hidden = true;
+    runError.textContent = "";
+}
+
+/**
+ * Shows a message in the log area when there are no rows, and hides the slot when there are.
+ * @param {string} message - The message to show, or an empty string to hide the slot.
+ */
+function showEmptyState(message) {
+    emptyState.textContent = message;
+    emptyState.style.display = message ? "" : "none";
 }
 
 function clearLog() {
@@ -107,55 +133,76 @@ function addLogRow(entry) {
 
     row.append(item, chip);
     logTable.appendChild(row);
+    logTable.scrollTop = logTable.scrollHeight;
+
+    rowCount += 1;
+    if (isBusy && !isQuitting) {
+        totalsEl.textContent = formatProgress(progressLabel, rowCount);
+    }
 }
 
-previewBtn.addEventListener("click", async () => {
-    isPreviewMode = true;
+/**
+ * Runs a preview or a batch, keeping the buttons, log and status line in step.
+ * @param {object} job - What to run.
+ * @param {HTMLButtonElement} job.button - The button that started the job.
+ * @param {string} job.idleLabel - The button's label when nothing is running.
+ * @param {string} job.busyLabel - The button's label, and the status text, while running.
+ * @param {boolean} job.isPreview - Whether the job only previews the renames.
+ * @param {() => Promise<object>} job.start - Starts the job in the main process.
+ * @param {(result: object) => {message: string, totals: string}} job.summarise - Builds the empty-state message and totals line from the result.
+ */
+async function runJob({ button, idleLabel, busyLabel, isPreview, start, summarise }) {
+    isPreviewMode = isPreview;
+    progressLabel = busyLabel;
+    rowCount = 0;
     setBusy(true);
-    previewBtn.textContent = "Previewing…";
+    button.textContent = busyLabel;
     clearLog();
-    emptyState.textContent = "Previewing…";
-    emptyState.style.display = "";
-    totalsEl.textContent = "";
+    hideRunError();
+    showEmptyState("");
+    totalsEl.textContent = busyLabel;
 
     try {
-        const { renamed, hasConfig } = await window.api.previewRename();
-        emptyState.textContent = previewEmptyStateMessage(renamed, hasConfig);
-        totalsEl.textContent = formatPreviewTotals(renamed);
+        const { message, totals } = summarise(await start());
+        showEmptyState(message);
+        totalsEl.textContent = totals;
     } catch (err) {
-        emptyState.textContent = "No preview yet.";
-        totalsEl.textContent = `Failed: ${err.message}`;
+        showRunError(cleanIpcError(err.message));
+        totalsEl.textContent = "";
     } finally {
         setBusy(false);
-        previewBtn.textContent = "Preview";
+        button.textContent = idleLabel;
     }
-});
+}
+
+previewBtn.addEventListener("click", () =>
+    runJob({
+        button: previewBtn,
+        idleLabel: "Preview",
+        busyLabel: "Previewing…",
+        isPreview: true,
+        start: () => window.api.previewRename(),
+        summarise: ({ renamed, hasConfig }) => ({
+            message: previewEmptyStateMessage(renamed, hasConfig),
+            totals: formatPreviewTotals(renamed),
+        }),
+    })
+);
 
 runBtn.addEventListener("click", async () => {
-    const confirmed = window.confirm(
-        `This will rename folders in ${directoryPath}. Continue?`
-    );
-    if (!confirmed) return;
+    if (!(await window.api.confirmRun())) return;
 
-    isPreviewMode = false;
-    setBusy(true);
-    runBtn.textContent = "Processing…";
-    clearLog();
-    emptyState.textContent = "Processing…";
-    emptyState.style.display = "";
-    totalsEl.textContent = "";
-
-    try {
-        const { renamed, errored, hasConfig } = await window.api.runRename();
-        emptyState.textContent = emptyStateMessage(renamed, errored, hasConfig);
-        totalsEl.textContent = formatTotals(renamed, errored);
-    } catch (err) {
-        emptyState.textContent = "No folders processed yet.";
-        totalsEl.textContent = `Failed: ${err.message}`;
-    } finally {
-        setBusy(false);
-        runBtn.textContent = "Process Batch";
-    }
+    await runJob({
+        button: runBtn,
+        idleLabel: "Process Batch",
+        busyLabel: "Processing…",
+        isPreview: false,
+        start: () => window.api.runRename(),
+        summarise: ({ renamed, errored, hasConfig }) => ({
+            message: emptyStateMessage(renamed, errored, hasConfig),
+            totals: formatTotals(renamed, errored),
+        }),
+    });
 });
 
 chooseBtn.addEventListener("click", async () => {
@@ -192,10 +239,12 @@ pathDisplay.addEventListener("drop", (event) => {
 });
 
 window.api.onRenameLog(addLogRow);
+window.api.onQuitWaiting(() => {
+    isQuitting = true;
+    totalsEl.textContent = QUIT_WAITING_MESSAGE;
+});
 window.api.onMenuChoose(() => chooseBtn.click());
-// Trigger the real buttons rather than duplicating their logic — this keeps
-// the disabled-state guard and confirm dialog working identically whether
-// the action comes from a click or the menu/keyboard shortcut.
+// Menu actions click the buttons, so the disabled state and confirm dialog apply the same way as for a click.
 window.api.onMenuPreview(() => previewBtn.click());
 window.api.onMenuRun(() => runBtn.click());
 

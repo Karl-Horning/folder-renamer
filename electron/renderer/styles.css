@@ -96,7 +96,8 @@ main {
     background: var(--accent-soft);
 }
 
-.path-hint {
+.path-hint,
+.run-error {
     margin-bottom: 1rem;
     color: var(--accent);
     font-size: 0.78rem;

@@ -44,6 +44,17 @@ async function chooseFolder(app, page, dir) {
     );
 }
 
+/**
+ * Answers the native confirm dialog with the button at the given index, where 0 is Rename and 1 is Cancel.
+ * @param {import("playwright-core").ElectronApplication} app - The running app.
+ * @param {number} response - The index of the button to press.
+ */
+async function stubConfirm(app, response) {
+    await app.evaluate(({ dialog }, index) => {
+        dialog.showMessageBox = async () => ({ response: index });
+    }, response);
+}
+
 describe("Folder Renamer app (E2E)", () => {
     let app;
     let scratchDir;
@@ -181,7 +192,7 @@ describe("Folder Renamer app (E2E)", () => {
         );
         expect(mainPathText).toBe(scratchDir);
 
-        mainPage.once("dialog", (dialog) => dialog.accept());
+        await stubConfirm(app, 0);
         await mainPage.click("#run-btn");
         await sleep(1000);
 
@@ -224,7 +235,7 @@ describe("Folder Renamer app (E2E)", () => {
         ]);
 
         // The real run should still work correctly afterward.
-        mainPage.once("dialog", (dialog) => dialog.accept());
+        await stubConfirm(app, 0);
         await mainPage.click("#run-btn");
         await sleep(1000);
 
@@ -253,20 +264,70 @@ describe("Folder Renamer app (E2E)", () => {
 
             await chooseFolder(app, mainPage, scratchDir);
 
-            mainPage.once("dialog", (dialog) => dialog.accept());
+            await stubConfirm(app, 0);
             await mainPage.click("#run-btn");
             await sleep(1000);
 
-            const totals = await mainPage.evaluate(
-                () => document.getElementById("totals").textContent
-            );
-            expect(totals).toMatch(/^Failed:/);
+            await mainPage.waitForSelector("#run-error:not([hidden])");
+            const errorText = await mainPage.textContent("#run-error");
+            expect(errorText).toMatch(/^Failed to load JSON from .*prefixes\.json/);
 
             // The app itself must still be alive and responsive, not vanished.
             expect(app.windows().length).toBeGreaterThan(0);
         } finally {
             await fs.writeFile(prefixesPath, backup);
         }
+    });
+
+    it("leaves folders alone when the confirm dialog is cancelled", async () => {
+        scratchDir = await fs.mkdtemp(
+            path.join(os.tmpdir(), "folder-renamer-e2e-")
+        );
+        await fs.mkdir(path.join(scratchDir, "Holiday Snaps (digital)"));
+
+        const mainPage = app.windows()[0];
+        await chooseFolder(app, mainPage, scratchDir);
+
+        await stubConfirm(app, 1);
+        await mainPage.click("#run-btn");
+        await sleep(500);
+
+        expect(await fs.readdir(scratchDir)).toEqual([
+            "Holiday Snaps (digital)",
+        ]);
+        expect(await mainPage.textContent("#totals")).toBe("");
+    });
+
+    it("shows a readable message when the chosen folder has been deleted", async () => {
+        scratchDir = await fs.mkdtemp(
+            path.join(os.tmpdir(), "folder-renamer-e2e-")
+        );
+        const mainPage = app.windows()[0];
+        await chooseFolder(app, mainPage, scratchDir);
+        await fs.rm(scratchDir, { recursive: true, force: true });
+
+        await mainPage.click("#preview-btn");
+        await mainPage.waitForSelector("#run-error:not([hidden])");
+
+        expect(await mainPage.textContent("#run-error")).toBe(
+            "That folder no longer exists."
+        );
+    });
+
+    it("shows an error box when the config folder can't be opened", async () => {
+        const mainPage = app.windows()[0];
+        await app.evaluate(({ dialog, shell }) => {
+            globalThis.errorBoxes = [];
+            shell.openPath = async () => "Nothing to open it with.";
+            dialog.showErrorBox = (title, content) =>
+                globalThis.errorBoxes.push([title, content]);
+        });
+
+        await mainPage.click("#config-btn");
+
+        await expect
+            .poll(() => app.evaluate(() => globalThis.errorBoxes))
+            .toEqual([["Can't open the config folder", "Nothing to open it with."]]);
     });
 
     it("points to Reveal Config Folder in Preview when no rename rules are configured at all", async () => {
