@@ -28,10 +28,7 @@ export async function seedDataDir(dataDir, bundledDataDir, files) {
     await Promise.all(
         missingFiles.map(async (file) => {
             try {
-                await fs.copyFile(
-                    path.join(bundledDataDir, file),
-                    path.join(dataDir, file)
-                );
+                await fs.copyFile(path.join(bundledDataDir, file), path.join(dataDir, file));
             } catch {
                 // No bundled default to copy from — for example a dev-mode
                 // run on a fresh clone, where src/data/ is gitignored and
@@ -39,7 +36,7 @@ export async function seedDataDir(dataDir, bundledDataDir, files) {
                 // app unable to launch at all.
                 await fs.writeFile(path.join(dataDir, file), "[]");
             }
-        })
+        }),
     );
 
     return missingFiles.length > 0;

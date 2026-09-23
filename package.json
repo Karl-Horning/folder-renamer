@@ -24,16 +24,23 @@
     "dist": "electron-builder",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "vitest run --config vitest.e2e.config.js"
+    "test:e2e": "vitest run --config vitest.e2e.config.js",
+    "lint": "eslint .",
+    "format": "prettier --write \"electron/**/*.{js,cjs,css,html}\" \"src/**/*.js\" eslint.config.js vitest*.js"
   },
   "dependencies": {
     "dotenv": "^16.5.0",
     "electron-store": "^11.0.2"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "electron": "^43.4.0",
     "electron-builder": "^26.15.3",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.12.0",
     "playwright-core": "^1.62.1",
+    "prettier": "^3.9.9",
     "vitest": "^3.2.7"
   },
   "build": {

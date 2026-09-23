@@ -31,7 +31,7 @@ describe("validateEnv", () => {
 
         expect(console.error).toHaveBeenCalledWith(
             "Missing required environment variables:",
-            "DIRECTORY_PATH"
+            "DIRECTORY_PATH",
         );
         expect(process.exit).toHaveBeenCalledWith(1);
     });
@@ -44,7 +44,7 @@ describe("validateEnv", () => {
 
         expect(console.error).toHaveBeenCalledWith(
             "Missing required environment variables:",
-            "DIRECTORY_PATH, OTHER_KEY"
+            "DIRECTORY_PATH, OTHER_KEY",
         );
     });
 });

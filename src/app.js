@@ -43,13 +43,10 @@ async function main() {
                 console.log(
                     dryRun
                         ? `Would rename: '${oldName}' → '${newName}'`
-                        : `Renamed: '${oldName}' → '${newName}'`
+                        : `Renamed: '${oldName}' → '${newName}'`,
                 ),
             onError: (oldName, newName, err) =>
-                console.error(
-                    `Error renaming '${oldName}' to '${newName}':`,
-                    err
-                ),
+                console.error(`Error renaming '${oldName}' to '${newName}':`, err),
         });
     } catch (err) {
         console.error("Failed to process directory:", err);

@@ -39,8 +39,7 @@ function render() {
         pathDisplay.title = directoryPath;
         pathDisplay.classList.remove("empty");
     } else {
-        pathDisplay.textContent =
-            "No folder selected. Choose or drop one.";
+        pathDisplay.textContent = "No folder selected. Choose or drop one.";
         pathDisplay.removeAttribute("title");
         pathDisplay.classList.add("empty");
     }
@@ -120,9 +119,7 @@ function announce(message) {
 }
 
 function clearLog() {
-    logRows
-        .querySelectorAll(".log-row:not(.head)")
-        .forEach((row) => row.remove());
+    logRows.querySelectorAll(".log-row:not(.head)").forEach((row) => row.remove());
 }
 
 function addLogRow(entry) {
@@ -156,11 +153,7 @@ function addLogRow(entry) {
     const chip = document.createElement("span");
     chip.className = "chip";
     chip.setAttribute("role", "cell");
-    chip.textContent = isPreviewMode
-        ? "PREVIEW"
-        : entry.type === "ok"
-          ? "OK"
-          : "ERR";
+    chip.textContent = isPreviewMode ? "PREVIEW" : entry.type === "ok" ? "OK" : "ERR";
 
     row.append(item, chip);
     logRows.appendChild(row);
@@ -218,7 +211,7 @@ previewBtn.addEventListener("click", () =>
             message: previewEmptyStateMessage(renamed, hasConfig),
             totals: formatPreviewTotals(renamed),
         }),
-    })
+    }),
 );
 
 runBtn.addEventListener("click", async () => {

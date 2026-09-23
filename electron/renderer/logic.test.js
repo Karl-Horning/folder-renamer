@@ -14,7 +14,7 @@ import {
 describe("emptyStateMessage", () => {
     it("says nothing needed to rename when there were zero renames and zero errors, and rules are configured", () => {
         expect(emptyStateMessage(0, 0, true)).toBe(
-            "Nothing to rename. Every folder already matches its target name."
+            "Nothing to rename. Every folder already matches its target name.",
         );
     });
 
@@ -24,7 +24,7 @@ describe("emptyStateMessage", () => {
 
     it("defaults to assuming rules are configured when hasConfig isn't passed", () => {
         expect(emptyStateMessage(0, 0)).toBe(
-            "Nothing to rename. Every folder already matches its target name."
+            "Nothing to rename. Every folder already matches its target name.",
         );
     });
 
@@ -44,7 +44,7 @@ describe("formatLogEntry", () => {
                 type: "ok",
                 oldName: "Holiday Snaps (digital)",
                 newName: "Holiday Snaps",
-            })
+            }),
         ).toEqual({
             before: "Holiday Snaps (digital)",
             relation: "becomes",
@@ -59,7 +59,7 @@ describe("formatLogEntry", () => {
                 oldName: "Old Bundle",
                 newName: "Old Bundle",
                 message: "A file with that name already exists.",
-            })
+            }),
         ).toEqual({
             before: "Old Bundle",
             relation: "failed:",
@@ -81,19 +81,17 @@ describe("formatTotals", () => {
 describe("previewEmptyStateMessage", () => {
     it("says nothing would change when the preview found zero renames, and rules are configured", () => {
         expect(previewEmptyStateMessage(0, true)).toBe(
-            "Nothing would change. Every folder already matches its target name."
+            "Nothing would change. Every folder already matches its target name.",
         );
     });
 
     it("points to Reveal Config Folder when the preview found zero renames because no rules are configured", () => {
-        expect(previewEmptyStateMessage(0, false)).toBe(
-            NO_RULES_CONFIGURED_MESSAGE
-        );
+        expect(previewEmptyStateMessage(0, false)).toBe(NO_RULES_CONFIGURED_MESSAGE);
     });
 
     it("defaults to assuming rules are configured when hasConfig isn't passed", () => {
         expect(previewEmptyStateMessage(0)).toBe(
-            "Nothing would change. Every folder already matches its target name."
+            "Nothing would change. Every folder already matches its target name.",
         );
     });
 
@@ -120,8 +118,8 @@ describe("cleanIpcError", () => {
     it("strips Electron's remote-method wrapper", () => {
         expect(
             cleanIpcError(
-                "Error invoking remote method 'settings:save': Error: That is a file, not a folder."
-            )
+                "Error invoking remote method 'settings:save': Error: That is a file, not a folder.",
+            ),
         ).toBe("That is a file, not a folder.");
     });
 

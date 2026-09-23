@@ -13,8 +13,7 @@ import { waitForActiveOperation } from "./lib/quitGuard.js";
 // ESM's default-import interop can't see (`import electron from "electron"`
 // resolves to an empty object) — requiring it via createRequire sidesteps that.
 const require = createRequire(import.meta.url);
-const { app, BrowserWindow, Menu, dialog, ipcMain, shell } =
-    require("electron");
+const { app, BrowserWindow, Menu, dialog, ipcMain, shell } = require("electron");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,11 +22,7 @@ const isMac = process.platform === "darwin";
 const REPO_URL = "https://github.com/Karl-Horning/folder-renamer";
 
 const BUNDLED_DATA_DIR = path.join(__dirname, "..", "src", "data");
-const PATTERN_FILES = [
-    "prefixes.json",
-    "removePatterns.json",
-    "replacePatterns.json",
-];
+const PATTERN_FILES = ["prefixes.json", "removePatterns.json", "replacePatterns.json"];
 
 // electron-builder generates the packaged app's .icns from this same file at
 // build time — setting it here too means dev mode (`npm run electron`) shows
@@ -200,7 +195,7 @@ ipcMain.handle("run:confirm", async () => {
 ipcMain.handle("rename:run", async (event) => {
     const directoryPath = store.get("directoryPath");
     activeRenamePromise = runRenameJob(directoryPath, userDataDir, (entry) =>
-        event.sender.send("rename:log", entry)
+        event.sender.send("rename:log", entry),
     );
     try {
         return await activeRenamePromise;
@@ -217,7 +212,7 @@ ipcMain.handle("rename:preview", async (event) => {
         directoryPath,
         userDataDir,
         (entry) => event.sender.send("rename:log", entry),
-        true
+        true,
     );
 });
 
@@ -255,9 +250,7 @@ app.on("before-quit", (event) => {
         event.preventDefault();
         quittingAfterRename = true;
         mainWindow?.webContents.send("app:quit-waiting");
-        waitForActiveOperation(activeRenamePromise, 15_000).then(() =>
-            app.quit()
-        );
+        waitForActiveOperation(activeRenamePromise, 15_000).then(() => app.quit());
         return;
     }
 

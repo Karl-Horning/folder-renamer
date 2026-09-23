@@ -1,10 +1,7 @@
 import path from "path";
 
 import { loadJSON } from "../../src/helpers/loadJSON.js";
-import {
-    hasAnyPatterns,
-    initReplacePatterns,
-} from "../../src/helpers/replacePatterns.js";
+import { hasAnyPatterns, initReplacePatterns } from "../../src/helpers/replacePatterns.js";
 import { renameFolders } from "../../src/renameFolders.js";
 
 const FRIENDLY_RENAME_ERRORS = {

@@ -9,9 +9,7 @@ describe("assertDirectory", () => {
     let scratchDir;
 
     beforeEach(async () => {
-        scratchDir = await fs.mkdtemp(
-            path.join(os.tmpdir(), "folder-renamer-assert-")
-        );
+        scratchDir = await fs.mkdtemp(path.join(os.tmpdir(), "folder-renamer-assert-"));
     });
 
     afterEach(async () => {
@@ -25,24 +23,20 @@ describe("assertDirectory", () => {
     it.each([undefined, null, 42, {}, "", "   "])(
         "rejects a non-string or blank value (%j)",
         async (value) => {
-            await expect(assertDirectory(value)).rejects.toThrow(
-                "No folder was provided."
-            );
-        }
+            await expect(assertDirectory(value)).rejects.toThrow("No folder was provided.");
+        },
     );
 
     it("rejects a path that does not exist", async () => {
-        await expect(
-            assertDirectory(path.join(scratchDir, "missing"))
-        ).rejects.toThrow("doesn't exist");
+        await expect(assertDirectory(path.join(scratchDir, "missing"))).rejects.toThrow(
+            "doesn't exist",
+        );
     });
 
     it("rejects a path that is a file", async () => {
         const filePath = path.join(scratchDir, "note.txt");
         await fs.writeFile(filePath, "hello");
 
-        await expect(assertDirectory(filePath)).rejects.toThrow(
-            "not a folder"
-        );
+        await expect(assertDirectory(filePath)).rejects.toThrow("not a folder");
     });
 });

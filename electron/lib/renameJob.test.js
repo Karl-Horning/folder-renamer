@@ -9,26 +9,22 @@ import { describeRenameError, runRenameJob } from "./renameJob.js";
 describe("describeRenameError", () => {
     it("maps EEXIST and ENOTEMPTY to a friendly 'already exists' message", () => {
         expect(describeRenameError({ code: "EEXIST" })).toBe(
-            "A folder with that name already exists."
+            "A folder with that name already exists.",
         );
         expect(describeRenameError({ code: "ENOTEMPTY" })).toBe(
-            "A folder with that name already exists."
+            "A folder with that name already exists.",
         );
     });
 
     it("maps ENOTDIR to a friendly message about a colliding file", () => {
         expect(describeRenameError({ code: "ENOTDIR" })).toBe(
-            "A file with that name already exists."
+            "A file with that name already exists.",
         );
     });
 
     it("maps EACCES and EPERM to a permission-denied message", () => {
-        expect(describeRenameError({ code: "EACCES" })).toBe(
-            "Permission denied."
-        );
-        expect(describeRenameError({ code: "EPERM" })).toBe(
-            "Permission denied."
-        );
+        expect(describeRenameError({ code: "EACCES" })).toBe("Permission denied.");
+        expect(describeRenameError({ code: "EPERM" })).toBe("Permission denied.");
     });
 
     it("falls back to the raw error code when it isn't mapped", () => {
@@ -36,9 +32,7 @@ describe("describeRenameError", () => {
     });
 
     it("falls back to the error message when there's no code at all", () => {
-        expect(describeRenameError({ message: "something broke" })).toBe(
-            "something broke"
-        );
+        expect(describeRenameError({ message: "something broke" })).toBe("something broke");
     });
 });
 
@@ -54,18 +48,12 @@ describe("runRenameJob", () => {
         await fs.mkdir(dataDir, { recursive: true });
         await fs.mkdir(targetDir, { recursive: true });
 
-        await fs.writeFile(
-            path.join(dataDir, "prefixes.json"),
-            JSON.stringify(["MyPhotos"])
-        );
+        await fs.writeFile(path.join(dataDir, "prefixes.json"), JSON.stringify(["MyPhotos"]));
         await fs.writeFile(
             path.join(dataDir, "removePatterns.json"),
-            JSON.stringify([{ text: "(digital)" }])
+            JSON.stringify([{ text: "(digital)" }]),
         );
-        await fs.writeFile(
-            path.join(dataDir, "replacePatterns.json"),
-            JSON.stringify([])
-        );
+        await fs.writeFile(path.join(dataDir, "replacePatterns.json"), JSON.stringify([]));
     });
 
     afterEach(async () => {
@@ -74,51 +62,46 @@ describe("runRenameJob", () => {
 
     it("throws when no directory path is given", async () => {
         await expect(runRenameJob("", dataDir, () => {})).rejects.toThrow(
-            "No folder is set. Choose one first."
+            "No folder is set. Choose one first.",
         );
     });
 
     it("throws a clear, catchable error when prefixes.json is missing", async () => {
         await fs.rm(path.join(dataDir, "prefixes.json"));
 
-        await expect(
-            runRenameJob(targetDir, dataDir, () => {})
-        ).rejects.toThrow(/Failed to load JSON from .*prefixes\.json/);
+        await expect(runRenameJob(targetDir, dataDir, () => {})).rejects.toThrow(
+            /Failed to load JSON from .*prefixes\.json/,
+        );
     });
 
     it("throws a clear, catchable error when a pattern file is corrupted", async () => {
-        await fs.writeFile(
-            path.join(dataDir, "removePatterns.json"),
-            "{ not valid json"
-        );
+        await fs.writeFile(path.join(dataDir, "removePatterns.json"), "{ not valid json");
 
-        await expect(
-            runRenameJob(targetDir, dataDir, () => {})
-        ).rejects.toThrow(/Failed to load removePatterns\.json/);
+        await expect(runRenameJob(targetDir, dataDir, () => {})).rejects.toThrow(
+            /Failed to load removePatterns\.json/,
+        );
     });
 
     it("throws a readable message when the folder no longer exists", async () => {
-        await expect(
-            runRenameJob(path.join(tmpDir, "missing"), dataDir, () => {})
-        ).rejects.toThrow("That folder no longer exists.");
+        await expect(runRenameJob(path.join(tmpDir, "missing"), dataDir, () => {})).rejects.toThrow(
+            "That folder no longer exists.",
+        );
     });
 
     it("throws a readable message when the chosen path is a file", async () => {
         const filePath = path.join(tmpDir, "note.txt");
         await fs.writeFile(filePath, "hello");
 
-        await expect(
-            runRenameJob(filePath, dataDir, () => {})
-        ).rejects.toThrow("That is a file, not a folder.");
+        await expect(runRenameJob(filePath, dataDir, () => {})).rejects.toThrow(
+            "That is a file, not a folder.",
+        );
     });
 
     it("renames folders, reports each attempt, and returns the final counts", async () => {
         await fs.mkdir(path.join(targetDir, "Holiday Snaps (digital)"));
 
         const logEntries = [];
-        const result = await runRenameJob(targetDir, dataDir, (entry) =>
-            logEntries.push(entry)
-        );
+        const result = await runRenameJob(targetDir, dataDir, (entry) => logEntries.push(entry));
 
         expect(result).toEqual({ renamed: 1, errored: 0, hasConfig: true });
         expect(logEntries).toEqual([
@@ -138,9 +121,7 @@ describe("runRenameJob", () => {
         await fs.writeFile(path.join(targetDir, "Old Bundle"), "");
 
         const logEntries = [];
-        const result = await runRenameJob(targetDir, dataDir, (entry) =>
-            logEntries.push(entry)
-        );
+        const result = await runRenameJob(targetDir, dataDir, (entry) => logEntries.push(entry));
 
         expect(result).toEqual({ renamed: 0, errored: 1, hasConfig: true });
         expect(logEntries).toEqual([
@@ -161,7 +142,7 @@ describe("runRenameJob", () => {
             targetDir,
             dataDir,
             (entry) => logEntries.push(entry),
-            true
+            true,
         );
 
         expect(result).toEqual({ renamed: 1, errored: 0, hasConfig: true });
@@ -182,9 +163,7 @@ describe("runRenameJob", () => {
         await fs.mkdir(path.join(targetDir, "Holiday Snaps"));
 
         const logEntries = [];
-        const result = await runRenameJob(targetDir, dataDir, (entry) =>
-            logEntries.push(entry)
-        );
+        const result = await runRenameJob(targetDir, dataDir, (entry) => logEntries.push(entry));
 
         expect(result).toEqual({ renamed: 0, errored: 0, hasConfig: true });
         expect(logEntries).toEqual([]);
