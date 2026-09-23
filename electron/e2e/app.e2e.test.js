@@ -11,7 +11,7 @@ const APP_DIR = path.join(__dirname, "..", "..");
 
 const electronBin = path.join(
     APP_DIR,
-    "node_modules/electron/dist/Electron.app/Contents/MacOS/Electron"
+    "node_modules/electron/dist/Electron.app/Contents/MacOS/Electron",
 );
 
 // This dev sandbox sets ELECTRON_RUN_AS_NODE=1 by default so Electron binaries
@@ -38,9 +38,8 @@ async function chooseFolder(app, page, dir) {
     }, dir);
     await page.click("#choose-btn");
     await page.waitForFunction(
-        (expected) =>
-            document.getElementById("path-display").textContent === expected,
-        dir
+        (expected) => document.getElementById("path-display").textContent === expected,
+        dir,
     );
 }
 
@@ -65,9 +64,7 @@ describe("Folder Renamer app (E2E)", () => {
         // app now (a real, hand-curated removePatterns.json and a real saved
         // directoryPath), so these tests must never read from or write to
         // ~/Library/Application Support/Folder Renamer — only this temp copy.
-        testUserDataDir = await fs.mkdtemp(
-            path.join(os.tmpdir(), "folder-renamer-e2e-userdata-")
-        );
+        testUserDataDir = await fs.mkdtemp(path.join(os.tmpdir(), "folder-renamer-e2e-userdata-"));
         // macOS's /var/folders is itself a symlink to /private/var/folders —
         // Electron reports the resolved path, so match it to avoid a false
         // mismatch between two strings that name the same real directory.
@@ -102,9 +99,7 @@ describe("Folder Renamer app (E2E)", () => {
     });
 
     it("seeds the data files into its (isolated, test-only) userData directory", async () => {
-        const userDataPath = await app.evaluate(({ app }) =>
-            app.getPath("userData")
-        );
+        const userDataPath = await app.evaluate(({ app }) => app.getPath("userData"));
         expect(userDataPath).toBe(testUserDataDir);
 
         const seededFiles = await fs.readdir(path.join(userDataPath, "data"));
@@ -118,10 +113,10 @@ describe("Folder Renamer app (E2E)", () => {
     it("shows the main window with Run disabled until a folder is set", async () => {
         const mainPage = app.windows()[0];
         const pathText = await mainPage.evaluate(
-            () => document.getElementById("path-display").textContent
+            () => document.getElementById("path-display").textContent,
         );
         const runDisabled = await mainPage.evaluate(
-            () => document.getElementById("run-btn").disabled
+            () => document.getElementById("run-btn").disabled,
         );
 
         expect(pathText).toMatch(/No folder selected/);
@@ -129,9 +124,7 @@ describe("Folder Renamer app (E2E)", () => {
     });
 
     it("rejects a chosen path that isn't a folder and keeps the current state", async () => {
-        scratchDir = await fs.mkdtemp(
-            path.join(os.tmpdir(), "folder-renamer-e2e-")
-        );
+        scratchDir = await fs.mkdtemp(path.join(os.tmpdir(), "folder-renamer-e2e-"));
         const filePath = path.join(scratchDir, "note.txt");
         await fs.writeFile(filePath, "hello");
 
@@ -148,7 +141,7 @@ describe("Folder Renamer app (E2E)", () => {
         const hint = await mainPage.textContent("#path-hint");
         const pathText = await mainPage.textContent("#path-display");
         const runDisabled = await mainPage.evaluate(
-            () => document.getElementById("run-btn").disabled
+            () => document.getElementById("run-btn").disabled,
         );
 
         expect(hint).toBe("That is a file, not a folder.");
@@ -157,16 +150,12 @@ describe("Folder Renamer app (E2E)", () => {
     });
 
     it("enables the Preview and Process Batch menu items only once a folder is chosen", async () => {
-        scratchDir = await fs.mkdtemp(
-            path.join(os.tmpdir(), "folder-renamer-e2e-")
-        );
+        scratchDir = await fs.mkdtemp(path.join(os.tmpdir(), "folder-renamer-e2e-"));
         const mainPage = app.windows()[0];
         const menuEnabled = () =>
             app.evaluate(({ Menu }) => {
                 const menu = Menu.getApplicationMenu();
-                return ["choose", "preview", "run"].map(
-                    (id) => menu.getMenuItemById(id).enabled
-                );
+                return ["choose", "preview", "run"].map((id) => menu.getMenuItemById(id).enabled);
             });
 
         expect(await menuEnabled()).toEqual([true, false, false]);
@@ -176,19 +165,15 @@ describe("Folder Renamer app (E2E)", () => {
     });
 
     it("runs a full batch: choose a folder, then rename its contents", async () => {
-        scratchDir = await fs.mkdtemp(
-            path.join(os.tmpdir(), "folder-renamer-e2e-")
-        );
-        await fs.mkdir(
-            path.join(scratchDir, "Holiday Snaps (digital) (2 covers)")
-        );
+        scratchDir = await fs.mkdtemp(path.join(os.tmpdir(), "folder-renamer-e2e-"));
+        await fs.mkdir(path.join(scratchDir, "Holiday Snaps (digital) (2 covers)"));
 
         const mainPage = app.windows()[0];
 
         await chooseFolder(app, mainPage, scratchDir);
 
         const mainPathText = await mainPage.evaluate(
-            () => document.getElementById("path-display").textContent
+            () => document.getElementById("path-display").textContent,
         );
         expect(mainPathText).toBe(scratchDir);
 
@@ -196,9 +181,7 @@ describe("Folder Renamer app (E2E)", () => {
         await mainPage.click("#run-btn");
         await sleep(1000);
 
-        const totals = await mainPage.evaluate(
-            () => document.getElementById("totals").textContent
-        );
+        const totals = await mainPage.evaluate(() => document.getElementById("totals").textContent);
         expect(totals).toBe("Items 1 · OK 1 · Err 0");
 
         const remaining = await fs.readdir(scratchDir);
@@ -206,12 +189,8 @@ describe("Folder Renamer app (E2E)", () => {
     });
 
     it("previews a batch without touching the filesystem, then the real run still works", async () => {
-        scratchDir = await fs.mkdtemp(
-            path.join(os.tmpdir(), "folder-renamer-e2e-")
-        );
-        await fs.mkdir(
-            path.join(scratchDir, "Sandman Vol 3 (digital) (2 covers)")
-        );
+        scratchDir = await fs.mkdtemp(path.join(os.tmpdir(), "folder-renamer-e2e-"));
+        await fs.mkdir(path.join(scratchDir, "Sandman Vol 3 (digital) (2 covers)"));
 
         const mainPage = app.windows()[0];
 
@@ -221,18 +200,16 @@ describe("Folder Renamer app (E2E)", () => {
         await sleep(800);
 
         const previewTotals = await mainPage.evaluate(
-            () => document.getElementById("totals").textContent
+            () => document.getElementById("totals").textContent,
         );
         const previewChip = await mainPage.evaluate(
-            () => document.querySelector(".log-row:not(.head) .chip")?.textContent
+            () => document.querySelector(".log-row:not(.head) .chip")?.textContent,
         );
         expect(previewTotals).toBe("Would rename 1 folder");
         expect(previewChip).toBe("PREVIEW");
 
         // Nothing should have actually changed on disk.
-        expect(await fs.readdir(scratchDir)).toEqual([
-            "Sandman Vol 3 (digital) (2 covers)",
-        ]);
+        expect(await fs.readdir(scratchDir)).toEqual(["Sandman Vol 3 (digital) (2 covers)"]);
 
         // The real run should still work correctly afterward.
         await stubConfirm(app, 0);
@@ -240,16 +217,14 @@ describe("Folder Renamer app (E2E)", () => {
         await sleep(1000);
 
         const runChip = await mainPage.evaluate(
-            () => document.querySelector(".log-row:not(.head) .chip")?.textContent
+            () => document.querySelector(".log-row:not(.head) .chip")?.textContent,
         );
         expect(runChip).toBe("OK");
         expect(await fs.readdir(scratchDir)).toEqual(["Sandman Vol 3"]);
     });
 
     it("exposes the path, results and final status to assistive technology", async () => {
-        scratchDir = await fs.mkdtemp(
-            path.join(os.tmpdir(), "folder-renamer-e2e-")
-        );
+        scratchDir = await fs.mkdtemp(path.join(os.tmpdir(), "folder-renamer-e2e-"));
         await fs.mkdir(path.join(scratchDir, "Holiday Snaps (digital)"));
 
         const mainPage = app.windows()[0];
@@ -258,37 +233,27 @@ describe("Folder Renamer app (E2E)", () => {
         await mainPage.getByRole("textbox", { name: "Origin" }).waitFor();
 
         await mainPage.click("#preview-btn");
-        await expect
-            .poll(() => mainPage.textContent("#announcer"))
-            .toBe("Would rename 1 folder");
+        await expect.poll(() => mainPage.textContent("#announcer")).toBe("Would rename 1 folder");
 
         const table = mainPage.getByRole("table", { name: "Renamed folders" });
         expect(await table.getByRole("row").count()).toBe(2);
-        expect(await table.locator(".before").textContent()).toBe(
-            "Holiday Snaps (digital)"
-        );
-        expect(await table.locator(".after").textContent()).toBe(
-            "Holiday Snaps"
-        );
+        expect(await table.locator(".before").textContent()).toBe("Holiday Snaps (digital)");
+        expect(await table.locator(".after").textContent()).toBe("Holiday Snaps");
 
         const fontStyles = await mainPage.evaluate(() =>
             ["path-display", "empty-state", "log-table"].map(
-                (id) => getComputedStyle(document.getElementById(id)).fontStyle
-            )
+                (id) => getComputedStyle(document.getElementById(id)).fontStyle,
+            ),
         );
         expect(fontStyles).toEqual(["normal", "normal", "normal"]);
     });
 
     it("shows a clear error instead of crashing when a config file is missing", async () => {
-        scratchDir = await fs.mkdtemp(
-            path.join(os.tmpdir(), "folder-renamer-e2e-")
-        );
+        scratchDir = await fs.mkdtemp(path.join(os.tmpdir(), "folder-renamer-e2e-"));
         await fs.mkdir(path.join(scratchDir, "Some Folder"));
 
         const mainPage = app.windows()[0];
-        const userDataPath = await app.evaluate(({ app }) =>
-            app.getPath("userData")
-        );
+        const userDataPath = await app.evaluate(({ app }) => app.getPath("userData"));
         const prefixesPath = path.join(userDataPath, "data", "prefixes.json");
         const backup = await fs.readFile(prefixesPath, "utf8");
 
@@ -313,9 +278,7 @@ describe("Folder Renamer app (E2E)", () => {
     });
 
     it("leaves folders alone when the confirm dialog is cancelled", async () => {
-        scratchDir = await fs.mkdtemp(
-            path.join(os.tmpdir(), "folder-renamer-e2e-")
-        );
+        scratchDir = await fs.mkdtemp(path.join(os.tmpdir(), "folder-renamer-e2e-"));
         await fs.mkdir(path.join(scratchDir, "Holiday Snaps (digital)"));
 
         const mainPage = app.windows()[0];
@@ -325,16 +288,12 @@ describe("Folder Renamer app (E2E)", () => {
         await mainPage.click("#run-btn");
         await sleep(500);
 
-        expect(await fs.readdir(scratchDir)).toEqual([
-            "Holiday Snaps (digital)",
-        ]);
+        expect(await fs.readdir(scratchDir)).toEqual(["Holiday Snaps (digital)"]);
         expect(await mainPage.textContent("#totals")).toBe("");
     });
 
     it("shows a readable message when the chosen folder has been deleted", async () => {
-        scratchDir = await fs.mkdtemp(
-            path.join(os.tmpdir(), "folder-renamer-e2e-")
-        );
+        scratchDir = await fs.mkdtemp(path.join(os.tmpdir(), "folder-renamer-e2e-"));
         const mainPage = app.windows()[0];
         await chooseFolder(app, mainPage, scratchDir);
         await fs.rm(scratchDir, { recursive: true, force: true });
@@ -342,9 +301,7 @@ describe("Folder Renamer app (E2E)", () => {
         await mainPage.click("#preview-btn");
         await mainPage.waitForSelector("#run-error:not([hidden])");
 
-        expect(await mainPage.textContent("#run-error")).toBe(
-            "That folder no longer exists."
-        );
+        expect(await mainPage.textContent("#run-error")).toBe("That folder no longer exists.");
     });
 
     it("shows an error box when the config folder can't be opened", async () => {
@@ -352,8 +309,7 @@ describe("Folder Renamer app (E2E)", () => {
         await app.evaluate(({ dialog, shell }) => {
             globalThis.errorBoxes = [];
             shell.openPath = async () => "Nothing to open it with.";
-            dialog.showErrorBox = (title, content) =>
-                globalThis.errorBoxes.push([title, content]);
+            dialog.showErrorBox = (title, content) => globalThis.errorBoxes.push([title, content]);
         });
 
         await mainPage.click("#config-btn");
@@ -364,21 +320,13 @@ describe("Folder Renamer app (E2E)", () => {
     });
 
     it("points to Reveal Config Folder in Preview when no rename rules are configured at all", async () => {
-        scratchDir = await fs.mkdtemp(
-            path.join(os.tmpdir(), "folder-renamer-e2e-")
-        );
+        scratchDir = await fs.mkdtemp(path.join(os.tmpdir(), "folder-renamer-e2e-"));
         await fs.mkdir(path.join(scratchDir, "Some Folder"));
 
         const mainPage = app.windows()[0];
-        const userDataPath = await app.evaluate(({ app }) =>
-            app.getPath("userData")
-        );
+        const userDataPath = await app.evaluate(({ app }) => app.getPath("userData"));
         const dataDir = path.join(userDataPath, "data");
-        const patternFiles = [
-            "prefixes.json",
-            "removePatterns.json",
-            "replacePatterns.json",
-        ];
+        const patternFiles = ["prefixes.json", "removePatterns.json", "replacePatterns.json"];
         const backups = {};
         for (const file of patternFiles) {
             backups[file] = await fs.readFile(path.join(dataDir, file), "utf8");
@@ -395,10 +343,10 @@ describe("Folder Renamer app (E2E)", () => {
             await sleep(800);
 
             const emptyStateText = await mainPage.evaluate(
-                () => document.getElementById("empty-state").textContent
+                () => document.getElementById("empty-state").textContent,
             );
             expect(emptyStateText).toBe(
-                "No rename rules configured yet. Click Reveal Config Folder to add some."
+                "No rename rules configured yet. Click Reveal Config Folder to add some.",
             );
         } finally {
             for (const file of patternFiles) {
@@ -409,9 +357,7 @@ describe("Folder Renamer app (E2E)", () => {
 
     it("quits within a bounded time", async () => {
         const proc = app.process();
-        const exitPromise = new Promise((resolve) =>
-            proc.once("exit", resolve)
-        );
+        const exitPromise = new Promise((resolve) => proc.once("exit", resolve));
 
         const t0 = Date.now();
         app.evaluate(({ app }) => app.quit()).catch(() => {});

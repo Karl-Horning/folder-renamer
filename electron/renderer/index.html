@@ -19,21 +19,14 @@
                 >
                     Loading…
                 </div>
-                <button class="btn" id="choose-btn" title="Choose folder (Cmd+O)">
-                    Choose…
-                </button>
+                <button class="btn" id="choose-btn" title="Choose folder (Cmd+O)">Choose…</button>
             </div>
             <div class="path-hint" id="path-hint" role="alert" hidden></div>
 
             <div class="run-error" id="run-error" role="alert" hidden></div>
 
             <div class="actions">
-                <button
-                    class="btn"
-                    id="preview-btn"
-                    title="Preview (Cmd+Shift+P)"
-                    disabled
-                >
+                <button class="btn" id="preview-btn" title="Preview (Cmd+Shift+P)" disabled>
                     Preview
                 </button>
                 <button
@@ -44,31 +37,19 @@
                 >
                     Process Batch
                 </button>
-                <button
-                    class="btn"
-                    id="config-btn"
-                    title="Reveal Config Folder (Cmd+Shift+R)"
-                >
+                <button class="btn" id="config-btn" title="Reveal Config Folder (Cmd+Shift+R)">
                     Reveal Config Folder
                 </button>
             </div>
 
-            <div
-                class="log-table"
-                id="log-table"
-                role="region"
-                aria-label="Results"
-                tabindex="0"
-            >
+            <div class="log-table" id="log-table" role="region" aria-label="Results" tabindex="0">
                 <div role="table" aria-label="Renamed folders" id="log-rows">
                     <div class="log-row head" role="row">
                         <span role="columnheader">Item</span>
                         <span role="columnheader">Status</span>
                     </div>
                 </div>
-                <div class="empty-state" id="empty-state">
-                    No folders processed yet.
-                </div>
+                <div class="empty-state" id="empty-state">No folders processed yet.</div>
             </div>
 
             <div class="totals" id="totals"></div>

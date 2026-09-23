@@ -8,9 +8,7 @@ describe("waitForActiveOperation", () => {
     });
 
     it("resolves immediately when there's no active operation", async () => {
-        await expect(
-            waitForActiveOperation(null, 15_000)
-        ).resolves.toBeUndefined();
+        await expect(waitForActiveOperation(null, 15_000)).resolves.toBeUndefined();
     });
 
     it("resolves once the active operation resolves, without waiting for the timeout", async () => {
@@ -30,9 +28,7 @@ describe("waitForActiveOperation", () => {
     it("resolves (not rejects) once the active operation rejects", async () => {
         const op = Promise.reject(new Error("rename batch failed"));
 
-        await expect(
-            waitForActiveOperation(op, 15_000)
-        ).resolves.toBeUndefined();
+        await expect(waitForActiveOperation(op, 15_000)).resolves.toBeUndefined();
     });
 
     it("gives up and resolves once maxWaitMs elapses, even if the operation never settles", async () => {

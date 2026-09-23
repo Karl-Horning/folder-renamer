@@ -13,7 +13,7 @@ import { transformName } from "./helpers/transformName.js";
 export async function renameFolders(
     directoryPath,
     prefixesToMove,
-    { onRename, onError, dryRun = false } = {}
+    { onRename, onError, dryRun = false } = {},
 ) {
     const entries = await fs.readdir(directoryPath, { withFileTypes: true });
 

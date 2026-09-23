@@ -15,9 +15,7 @@ function loadPatternsFile(dataDir, filename) {
     try {
         return JSON.parse(fs.readFileSync(filePath, "utf8"));
     } catch (err) {
-        throw new Error(
-            `Failed to load ${filename} from ${dataDir}: ${err.message}`
-        );
+        throw new Error(`Failed to load ${filename} from ${dataDir}: ${err.message}`);
     }
 }
 
@@ -30,9 +28,10 @@ function loadPatternsFile(dataDir, filename) {
 export function initReplacePatterns(dataDir) {
     // Patterns that strip a match entirely — no "replacement" field needed,
     // since removal is always to an empty string.
-    const removePatterns = loadPatternsFile(dataDir, "removePatterns.json").map(
-        (pattern) => ({ ...pattern, replacement: "" })
-    );
+    const removePatterns = loadPatternsFile(dataDir, "removePatterns.json").map((pattern) => ({
+        ...pattern,
+        replacement: "",
+    }));
 
     // Patterns that substitute a match with different text (for example, separators,
     // capitalisation, domain suffixes).
@@ -70,12 +69,7 @@ export function hasAnyPatterns() {
  * @returns {string} The transformed folder name after applying all replace patterns.
  */
 export function applyReplacePatterns(name) {
-    for (const {
-        text,
-        replacement,
-        isRegex,
-        caseInsensitive,
-    } of allPatterns) {
+    for (const { text, replacement, isRegex, caseInsensitive } of allPatterns) {
         const flags = caseInsensitive ? "gi" : "g";
 
         // Create a RegExp from the text: use as-is if isRegex is true,

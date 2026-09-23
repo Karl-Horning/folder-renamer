@@ -16,14 +16,8 @@ describe("seedDataDir", () => {
         bundledDataDir = path.join(tmpDir, "bundled");
         dataDir = path.join(tmpDir, "userData", "data");
         await fs.mkdir(bundledDataDir, { recursive: true });
-        await fs.writeFile(
-            path.join(bundledDataDir, "prefixes.json"),
-            '["MyPhotos"]'
-        );
-        await fs.writeFile(
-            path.join(bundledDataDir, "removePatterns.json"),
-            "[]"
-        );
+        await fs.writeFile(path.join(bundledDataDir, "prefixes.json"), '["MyPhotos"]');
+        await fs.writeFile(path.join(bundledDataDir, "removePatterns.json"), "[]");
     });
 
     afterEach(async () => {
@@ -37,50 +31,34 @@ describe("seedDataDir", () => {
         ]);
 
         expect(seeded).toBe(true);
-        expect(await fs.readFile(path.join(dataDir, "prefixes.json"), "utf8")).toBe(
-            '["MyPhotos"]'
-        );
-        expect(
-            await fs.readFile(path.join(dataDir, "removePatterns.json"), "utf8")
-        ).toBe("[]");
+        expect(await fs.readFile(path.join(dataDir, "prefixes.json"), "utf8")).toBe('["MyPhotos"]');
+        expect(await fs.readFile(path.join(dataDir, "removePatterns.json"), "utf8")).toBe("[]");
     });
 
     it("does nothing and reports not-seeded when every file already exists", async () => {
         await fs.mkdir(dataDir, { recursive: true });
-        await fs.writeFile(
-            path.join(dataDir, "prefixes.json"),
-            '["already", "here"]'
-        );
+        await fs.writeFile(path.join(dataDir, "prefixes.json"), '["already", "here"]');
 
-        const seeded = await seedDataDir(dataDir, bundledDataDir, [
-            "prefixes.json",
-        ]);
+        const seeded = await seedDataDir(dataDir, bundledDataDir, ["prefixes.json"]);
 
         expect(seeded).toBe(false);
         expect(await fs.readFile(path.join(dataDir, "prefixes.json"), "utf8")).toBe(
-            '["already", "here"]'
+            '["already", "here"]',
         );
     });
 
     it("falls back to an empty array when there's no bundled default to copy from at all", async () => {
         // Simulates a dev-mode run on a fresh clone, where the bundled
         // source directory itself doesn't have this file (or doesn't exist).
-        const seeded = await seedDataDir(dataDir, bundledDataDir, [
-            "replacePatterns.json",
-        ]);
+        const seeded = await seedDataDir(dataDir, bundledDataDir, ["replacePatterns.json"]);
 
         expect(seeded).toBe(true);
-        expect(
-            await fs.readFile(path.join(dataDir, "replacePatterns.json"), "utf8")
-        ).toBe("[]");
+        expect(await fs.readFile(path.join(dataDir, "replacePatterns.json"), "utf8")).toBe("[]");
     });
 
     it("self-heals a single missing file without touching the ones already there", async () => {
         await fs.mkdir(dataDir, { recursive: true });
-        await fs.writeFile(
-            path.join(dataDir, "prefixes.json"),
-            '["already", "here"]'
-        );
+        await fs.writeFile(path.join(dataDir, "prefixes.json"), '["already", "here"]');
         // removePatterns.json deliberately left out, as if the user deleted it.
 
         const seeded = await seedDataDir(dataDir, bundledDataDir, [
@@ -90,10 +68,8 @@ describe("seedDataDir", () => {
 
         expect(seeded).toBe(true);
         expect(await fs.readFile(path.join(dataDir, "prefixes.json"), "utf8")).toBe(
-            '["already", "here"]'
+            '["already", "here"]',
         );
-        expect(
-            await fs.readFile(path.join(dataDir, "removePatterns.json"), "utf8")
-        ).toBe("[]");
+        expect(await fs.readFile(path.join(dataDir, "removePatterns.json"), "utf8")).toBe("[]");
     });
 });

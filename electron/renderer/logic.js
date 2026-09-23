@@ -75,10 +75,7 @@ export function formatPreviewTotals(count) {
  * @returns {string} The message without the IPC wrapper.
  */
 export function cleanIpcError(message) {
-    return message.replace(
-        /^Error invoking remote method '[^']*': (Error: )?/,
-        ""
-    );
+    return message.replace(/^Error invoking remote method '[^']*': (Error: )?/, "");
 }
 
 /**

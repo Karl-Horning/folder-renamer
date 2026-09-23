@@ -13,7 +13,7 @@ describe("package.json userData naming", () => {
         const pkgPath = path.join(
             path.dirname(new URL(import.meta.url).pathname),
             "..",
-            "package.json"
+            "package.json",
         );
         const pkg = JSON.parse(await fs.readFile(pkgPath, "utf8"));
 
