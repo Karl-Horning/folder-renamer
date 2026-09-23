@@ -13,8 +13,7 @@ const FRIENDLY_RENAME_ERRORS = {
 };
 
 /**
- * Turns a raw fs.rename error into a short, human-readable reason — Node's
- * default message repeats both full file paths, which is unreadable in a log row.
+ * Turns a raw fs.rename error into a short reason, because Node's default message repeats both full paths.
  * @param {NodeJS.ErrnoException} err - The error thrown by fs.rename.
  * @returns {string} A short, human-readable reason.
  */
@@ -30,10 +29,8 @@ const FRIENDLY_DIRECTORY_ERRORS = {
 };
 
 /**
- * Runs a rename batch against a directory using the pattern config in a data
- * directory, reporting each attempt via onLog and returning the final counts.
- * With dryRun, reports what would be renamed without touching the filesystem —
- * errors can't happen in that mode, since nothing is actually attempted.
+ * Runs a rename batch against a directory using the pattern config in a data directory, reporting each attempt via onLog and returning the final counts.
+ * With dryRun, it reports what would be renamed without changing the filesystem, so it reports no errors.
  * @param {string} directoryPath - Folder whose subfolders should be renamed.
  * @param {string} dataDir - Directory containing prefixes.json and the pattern files.
  * @param {(entry: {type: "ok" | "error", oldName: string, newName: string, message?: string}) => void} onLog - Called once per rename attempt.

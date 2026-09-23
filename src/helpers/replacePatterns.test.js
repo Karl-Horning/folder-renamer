@@ -8,9 +8,7 @@ import { applyReplacePatterns, hasAnyPatterns, initReplacePatterns } from "./rep
 
 describe("applyReplacePatterns", () => {
     beforeAll(async () => {
-        // Self-contained synthetic fixture data, not the real (gitignored)
-        // src/data/ — these tests shouldn't depend on a personal pattern
-        // list that doesn't exist in a fresh clone.
+        // Synthetic fixture data, so the tests don't depend on the gitignored src/data/ pattern list.
         const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), "replacepatterns-test-"));
         await fs.writeFile(
             path.join(dataDir, "removePatterns.json"),

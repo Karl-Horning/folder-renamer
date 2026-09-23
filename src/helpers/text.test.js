@@ -3,9 +3,7 @@ import { describe, expect, it } from "vitest";
 import { cleanupPunctuation, movePrefixesToEnd, moveImageCountAndDate } from "./text.js";
 
 describe("moveImageCountAndDate", () => {
-    // moveImageCountAndDate only deletes the matched substring and trims the
-    // ends, so a gap left in the middle of the string isn't collapsed here —
-    // that's cleanupPunctuation's job, exercised together in transformName.
+    // moveImageCountAndDate only deletes the matched substring and trims the ends. cleanupPunctuation collapses the gap, and the transformName tests cover them together.
 
     it("moves an image count to the end", () => {
         expect(moveImageCountAndDate("Holiday (x238) Snaps")).toBe("Holiday  Snaps (x238)");

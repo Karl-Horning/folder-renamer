@@ -17,10 +17,10 @@ A Node.js CLI that batch-renames folders — cleaning up dates, image counts, an
 ## Notable decisions
 
 - **In-place renaming** — folders are renamed directly, with no undo. Back up before running.
-- **Remove vs. replace patterns are separate files** — `removePatterns.json` strips text entirely (the replacement is always empty), `replacePatterns.json` substitutes text with something else. Splitting them avoids repeating `"replacement": ""` across dozens of entries.
+- **Remove and replace patterns are separate files** — `removePatterns.json` strips text (the replacement is always empty), `replacePatterns.json` substitutes text with something else. Splitting them avoids repeating `"replacement": ""` across dozens of entries.
 - **Pattern data isn't committed to git** — `src/data/*.json` holds hand-curated, personal scrubbing rules (scene-release tags, download-site cruft) that don't belong in a public repo. It's gitignored, so each clone builds its own list.
-- **The desktop app copies its config out of the app bundle on first run** — once packaged, `src/data/` is read-only, so the Electron app copies it into its own userData folder the first time it starts, and reads/writes there from then on. That way, app updates never overwrite your real, evolving pattern list. If `src/data/` doesn't have a file to copy — for example running the app straight from a fresh clone, before creating your own — it starts that file as an empty list instead of failing to launch.
-- **Preview/dry-run doesn't predict rename failures** — it shows what each folder would be renamed to, but not whether that rename would collide with something and fail. Accurately predicting that without attempting it is unreliable; a wrong prediction would be worse than none. Real failures still surface clearly when you actually run it.
+- **The desktop app copies its config out of the app bundle on first run** — once packaged, `src/data/` is read-only, so the Electron app copies it into its own userData folder the first time it starts, and reads/writes there from then on. That way, app updates never overwrite your evolving pattern list. If `src/data/` doesn't have a file to copy — for example running the app straight from a fresh clone, before creating your own — it starts that file as an empty list instead of failing to launch.
+- **Preview/dry-run doesn't predict rename failures** — it shows what each folder would be renamed to, but not whether that rename would collide with something and fail. Accurately predicting that without attempting it is unreliable; a wrong prediction would be worse than none. Failures still show clearly when you run it.
 - **The app icon comes from `design/assets.af`** — an Affinity Designer file exported to `build/icon.png`, which electron-builder turns into the packaged app's `.icns`.
 
 ## Local development
@@ -47,7 +47,7 @@ Three files in `src/data/` drive the transform. None of them ship with defaults,
   ["MyPhotos", "FamilyPhotos"]
   ```
 
-- **`removePatterns.json`** — strings or regex patterns to strip entirely. Use `isRegex: true` for regex, `caseInsensitive: true` to match regardless of case.
+- **`removePatterns.json`** — strings or regex patterns to strip. Use `isRegex: true` for regex, `caseInsensitive: true` to match regardless of case.
 
   ```json
   [
@@ -110,7 +110,7 @@ Keyboard shortcuts (also in the menu bar):
 | `npm run dist` | Build a distributable `.app` |
 | `npm test` | Run the unit test suite once |
 | `npm run test:watch` | Re-run unit tests on file changes |
-| `npm run test:e2e` | Launch the real desktop app and drive it end-to-end |
+| `npm run test:e2e` | Launch the desktop app and drive it end-to-end |
 
 ## Feedback and issues
 

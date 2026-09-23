@@ -14,10 +14,7 @@ const electronBin = path.join(
     "node_modules/electron/dist/Electron.app/Contents/MacOS/Electron",
 );
 
-// This dev sandbox sets ELECTRON_RUN_AS_NODE=1 by default so Electron binaries
-// don't unexpectedly open GUI windows. Real Electron behaviour (app/BrowserWindow/
-// ipcMain) requires it unset, so strip it for the spawned process rather than
-// relying on however this command happens to be invoked.
+// ELECTRON_RUN_AS_NODE=1 makes Electron run as plain Node, so it is removed for the spawned app.
 const launchEnv = { ...process.env };
 delete launchEnv.ELECTRON_RUN_AS_NODE;
 
@@ -60,29 +57,19 @@ describe("Folder Renamer app (E2E)", () => {
     let testUserDataDir;
 
     beforeAll(async () => {
-        // Isolated from the real userData directory: Karl actually uses this
-        // app now (a real, hand-curated removePatterns.json and a real saved
-        // directoryPath), so these tests must never read from or write to
-        // ~/Library/Application Support/Folder Renamer — only this temp copy.
+        // A temporary userData directory keeps the tests away from the installed app's settings and rule files.
         testUserDataDir = await fs.mkdtemp(path.join(os.tmpdir(), "folder-renamer-e2e-userdata-"));
-        // macOS's /var/folders is itself a symlink to /private/var/folders —
-        // Electron reports the resolved path, so match it to avoid a false
-        // mismatch between two strings that name the same real directory.
+        // macOS's /var/folders is a symlink to /private/var/folders, and Electron reports the resolved path.
         testUserDataDir = await fs.realpath(testUserDataDir);
 
-        // Launched via the project directory, not a bare file path — Electron
-        // only reads package.json's productName/main this way. A bare file-path
-        // launch falls back to the generic "Electron" userData folder instead
-        // of this app's own, which is exactly the bug this suite should catch
-        // if it ever regresses.
+        // Launching by project directory makes Electron read productName and main from package.json. A bare file path falls back to the generic "Electron" userData folder.
         app = await electron.launch({
             executablePath: electronBin,
             args: [APP_DIR, `--user-data-dir=${testUserDataDir}`],
             env: launchEnv,
             timeout: 30_000,
         });
-        // Let the main window's initial getSettings() IPC round-trip resolve
-        // before any test reads its rendered state.
+        // Waits for the main window's initial getSettings() call to resolve.
         await sleep(1000);
     });
 
@@ -188,7 +175,7 @@ describe("Folder Renamer app (E2E)", () => {
         expect(remaining).toEqual(["Holiday Snaps"]);
     });
 
-    it("previews a batch without touching the filesystem, then the real run still works", async () => {
+    it("previews a batch without touching the filesystem, then runs it", async () => {
         scratchDir = await fs.mkdtemp(path.join(os.tmpdir(), "folder-renamer-e2e-"));
         await fs.mkdir(path.join(scratchDir, "Sandman Vol 3 (digital) (2 covers)"));
 
@@ -211,7 +198,7 @@ describe("Folder Renamer app (E2E)", () => {
         // Nothing should have actually changed on disk.
         expect(await fs.readdir(scratchDir)).toEqual(["Sandman Vol 3 (digital) (2 covers)"]);
 
-        // The real run should still work correctly afterward.
+        // Running the batch afterward still works.
         await stubConfirm(app, 0);
         await mainPage.click("#run-btn");
         await sleep(1000);
