@@ -19,6 +19,9 @@ const { app, BrowserWindow, Menu, dialog, ipcMain, shell } =
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const isMac = process.platform === "darwin";
+const REPO_URL = "https://github.com/Karl-Horning/folder-renamer";
+
 const BUNDLED_DATA_DIR = path.join(__dirname, "..", "src", "data");
 const PATTERN_FILES = [
     "prefixes.json",
@@ -74,55 +77,76 @@ function createMainWindow() {
     mainWindow.once("ready-to-show", () => mainWindow?.show());
     mainWindow.on("closed", () => {
         mainWindow = null;
+        applyMenuState({ canChoose: false, canRun: false });
     });
 }
 
 function buildMenu() {
     const template = [
+        ...(isMac ? [{ role: "appMenu" }] : []),
         {
-            label: app.name,
+            label: "File",
             submenu: [
-                { role: "about" },
-                { type: "separator" },
                 {
+                    id: "choose",
                     label: "Choose Folder…",
-                    accelerator: "Cmd+O",
+                    accelerator: "CmdOrCtrl+O",
                     click: () => mainWindow?.webContents.send("menu:choose"),
                 },
-                {
-                    label: "Reveal Config Folder",
-                    accelerator: "Cmd+Shift+R",
-                    click: () => shell.openPath(userDataDir),
-                },
                 { type: "separator" },
                 {
+                    id: "preview",
                     label: "Preview",
-                    accelerator: "Cmd+Shift+P",
+                    accelerator: "CmdOrCtrl+Shift+P",
+                    enabled: false,
                     click: () => mainWindow?.webContents.send("menu:preview"),
                 },
                 {
+                    id: "run",
                     label: "Process Batch",
-                    accelerator: "Cmd+Return",
+                    accelerator: "CmdOrCtrl+Return",
+                    enabled: false,
                     click: () => mainWindow?.webContents.send("menu:run"),
                 },
                 { type: "separator" },
-                { role: "quit" },
+                {
+                    label: "Reveal Config Folder",
+                    accelerator: "CmdOrCtrl+Shift+R",
+                    click: () => shell.openPath(userDataDir),
+                },
+                { type: "separator" },
+                isMac ? { role: "close" } : { role: "quit" },
             ],
         },
+        { role: "editMenu" },
+        { role: "windowMenu" },
         {
-            label: "Edit",
+            role: "help",
             submenu: [
-                { role: "undo" },
-                { role: "redo" },
-                { type: "separator" },
-                { role: "cut" },
-                { role: "copy" },
-                { role: "paste" },
-                { role: "selectAll" },
+                {
+                    label: "View on GitHub",
+                    click: () => shell.openExternal(REPO_URL),
+                },
+                {
+                    label: "Report an Issue",
+                    click: () => shell.openExternal(`${REPO_URL}/issues`),
+                },
             ],
         },
     ];
     Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+}
+
+/**
+ * Enables or disables the menu items that act on the main window.
+ * @param {{canChoose: boolean, canRun: boolean}} state - Whether choosing a folder, and previewing or running a batch, are currently possible.
+ */
+function applyMenuState({ canChoose, canRun }) {
+    const menu = Menu.getApplicationMenu();
+    if (!menu) return;
+    menu.getMenuItemById("choose").enabled = canChoose;
+    menu.getMenuItemById("preview").enabled = canRun;
+    menu.getMenuItemById("run").enabled = canRun;
 }
 
 // --- IPC handlers ---
@@ -143,6 +167,10 @@ ipcMain.handle("dialog:chooseDirectory", async () => {
     });
     if (result.canceled || result.filePaths.length === 0) return null;
     return result.filePaths[0];
+});
+
+ipcMain.on("menu:state", (_event, { canChoose, canRun }) => {
+    applyMenuState({ canChoose: Boolean(canChoose), canRun: Boolean(canRun) });
 });
 
 ipcMain.handle("config:reveal", () => {
@@ -177,6 +205,10 @@ ipcMain.handle("rename:preview", async (event) => {
 
 app.whenReady().then(async () => {
     userDataDir = await seedUserData();
+    app.setAboutPanelOptions({
+        copyright: "Copyright © 2025 Karl Horning",
+        website: REPO_URL,
+    });
     buildMenu();
     createMainWindow();
 
@@ -186,7 +218,7 @@ app.whenReady().then(async () => {
 });
 
 app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") app.quit();
+    if (!isMac) app.quit();
 });
 
 // Chromium can occasionally hang for several seconds on quit. This detached

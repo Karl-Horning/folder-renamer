@@ -38,6 +38,10 @@ function render() {
     previewBtn.disabled = isBusy || !directoryPath;
     runBtn.disabled = isBusy || !directoryPath;
     chooseBtn.disabled = isBusy;
+    window.api.setMenuState({
+        canChoose: !isBusy,
+        canRun: !isBusy && Boolean(directoryPath),
+    });
 }
 
 function setBusy(value) {
