@@ -7,15 +7,25 @@
     </head>
     <body class="main-window">
         <main>
-            <div class="label">Origin</div>
-            <div class="path-display" id="path-display">Loading…</div>
+            <div class="label" id="path-label">Origin</div>
+            <div class="path-row">
+                <div
+                    class="path-display"
+                    id="path-display"
+                    aria-labelledby="path-label"
+                >
+                    Loading…
+                </div>
+                <button class="btn" id="choose-btn">Choose…</button>
+            </div>
+            <div class="path-hint" id="path-hint" role="alert" hidden></div>
 
             <div class="actions">
                 <button class="btn" id="preview-btn" disabled>Preview</button>
                 <button class="btn btn-primary" id="run-btn" disabled>
                     Process Batch
                 </button>
-                <button class="btn" id="settings-btn">Preferences…</button>
+                <button class="btn" id="config-btn">Reveal Config Folder</button>
             </div>
 
             <div class="log-table" id="log-table">

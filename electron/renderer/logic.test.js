@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
     NO_RULES_CONFIGURED_MESSAGE,
+    cleanIpcError,
     emptyStateMessage,
     formatLogEntry,
     formatPreviewTotals,
@@ -103,5 +104,19 @@ describe("formatPreviewTotals", () => {
 
     it("handles zero", () => {
         expect(formatPreviewTotals(0)).toBe("Would rename 0 folders");
+    });
+});
+
+describe("cleanIpcError", () => {
+    it("strips Electron's remote-method wrapper", () => {
+        expect(
+            cleanIpcError(
+                "Error invoking remote method 'settings:save': Error: That is a file, not a folder."
+            )
+        ).toBe("That is a file, not a folder.");
+    });
+
+    it("leaves an unwrapped message untouched", () => {
+        expect(cleanIpcError("Something broke")).toBe("Something broke");
     });
 });

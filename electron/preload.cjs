@@ -1,10 +1,10 @@
-const { contextBridge, ipcRenderer } = require("electron");
+const { contextBridge, ipcRenderer, webUtils } = require("electron");
 
 contextBridge.exposeInMainWorld("api", {
     getSettings: () => ipcRenderer.invoke("settings:get"),
     saveSettings: (settings) => ipcRenderer.invoke("settings:save", settings),
-    openSettings: () => ipcRenderer.invoke("settings:open"),
     chooseDirectory: () => ipcRenderer.invoke("dialog:chooseDirectory"),
+    getPathForFile: (file) => webUtils.getPathForFile(file),
     revealConfigFolder: () => ipcRenderer.invoke("config:reveal"),
     runRename: () => ipcRenderer.invoke("rename:run"),
     previewRename: () => ipcRenderer.invoke("rename:preview"),
@@ -15,10 +15,10 @@ contextBridge.exposeInMainWorld("api", {
         return () => ipcRenderer.removeListener("rename:log", listener);
     },
 
-    onSettingsChanged: (callback) => {
-        const listener = (_event, settings) => callback(settings);
-        ipcRenderer.on("settings:changed", listener);
-        return () => ipcRenderer.removeListener("settings:changed", listener);
+    onMenuChoose: (callback) => {
+        const listener = () => callback();
+        ipcRenderer.on("menu:choose", listener);
+        return () => ipcRenderer.removeListener("menu:choose", listener);
     },
 
     onMenuPreview: (callback) => {

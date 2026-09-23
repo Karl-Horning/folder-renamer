@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import Store from "electron-store";
 
 import { runRenameJob } from "./lib/renameJob.js";
+import { assertDirectory } from "./lib/assertDirectory.js";
 import { seedDataDir } from "./lib/seedUserData.js";
 import { waitForActiveOperation } from "./lib/quitGuard.js";
 
@@ -39,8 +40,6 @@ const store = new Store({
 let userDataDir;
 /** @type {BrowserWindow | null} */
 let mainWindow = null;
-/** @type {BrowserWindow | null} */
-let settingsWindow = null;
 /** @type {Promise<any> | null} */
 let activeRenamePromise = null;
 
@@ -78,34 +77,6 @@ function createMainWindow() {
     });
 }
 
-function createSettingsWindow() {
-    if (settingsWindow) {
-        settingsWindow.focus();
-        return;
-    }
-
-    settingsWindow = new BrowserWindow({
-        title: "Preferences",
-        icon: APP_ICON,
-        width: 420,
-        height: 330,
-        resizable: false,
-        backgroundColor: "#fdfdfb",
-        show: false,
-        parent: mainWindow ?? undefined,
-        webPreferences: {
-            preload: path.join(__dirname, "preload.cjs"),
-            contextIsolation: true,
-            nodeIntegration: false,
-        },
-    });
-    settingsWindow.loadFile(path.join(__dirname, "renderer", "settings.html"));
-    settingsWindow.once("ready-to-show", () => settingsWindow?.show());
-    settingsWindow.on("closed", () => {
-        settingsWindow = null;
-    });
-}
-
 function buildMenu() {
     const template = [
         {
@@ -114,9 +85,9 @@ function buildMenu() {
                 { role: "about" },
                 { type: "separator" },
                 {
-                    label: "Preferences…",
-                    accelerator: "Cmd+,",
-                    click: () => createSettingsWindow(),
+                    label: "Choose Folder…",
+                    accelerator: "Cmd+O",
+                    click: () => mainWindow?.webContents.send("menu:choose"),
                 },
                 {
                     label: "Reveal Config Folder",
@@ -160,22 +131,16 @@ ipcMain.handle("settings:get", () => ({
     directoryPath: store.get("directoryPath"),
 }));
 
-ipcMain.handle("settings:save", (_event, { directoryPath }) => {
-    store.set("directoryPath", directoryPath);
-    const updated = { directoryPath: store.get("directoryPath") };
-    mainWindow?.webContents.send("settings:changed", updated);
-    return updated;
-});
-
-ipcMain.handle("settings:open", () => {
-    createSettingsWindow();
+ipcMain.handle("settings:save", async (_event, { directoryPath }) => {
+    store.set("directoryPath", await assertDirectory(directoryPath));
+    return { directoryPath: store.get("directoryPath") };
 });
 
 ipcMain.handle("dialog:chooseDirectory", async () => {
-    const result = await dialog.showOpenDialog(
-        settingsWindow ?? mainWindow ?? undefined,
-        { properties: ["openDirectory"] }
-    );
+    const result = await dialog.showOpenDialog(mainWindow ?? undefined, {
+        defaultPath: store.get("directoryPath") || undefined,
+        properties: ["openDirectory"],
+    });
     if (result.canceled || result.filePaths.length === 0) return null;
     return result.filePaths[0];
 });

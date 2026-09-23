@@ -1,4 +1,5 @@
 import {
+    cleanIpcError,
     emptyStateMessage,
     formatLogEntry,
     formatPreviewTotals,
@@ -9,26 +10,69 @@ import {
 const pathDisplay = document.getElementById("path-display");
 const previewBtn = document.getElementById("preview-btn");
 const runBtn = document.getElementById("run-btn");
-const settingsBtn = document.getElementById("settings-btn");
+const chooseBtn = document.getElementById("choose-btn");
+const configBtn = document.getElementById("config-btn");
+const pathHint = document.getElementById("path-hint");
 const logTable = document.getElementById("log-table");
 const emptyState = document.getElementById("empty-state");
 const totalsEl = document.getElementById("totals");
 
 let directoryPath = "";
 let isPreviewMode = false;
+let isBusy = false;
 
 function render() {
     if (directoryPath) {
-        pathDisplay.textContent = directoryPath;
+        const text = document.createElement("span");
+        text.className = "path-text";
+        text.textContent = directoryPath;
+        pathDisplay.replaceChildren(text);
+        pathDisplay.title = directoryPath;
         pathDisplay.classList.remove("empty");
-        previewBtn.disabled = false;
-        runBtn.disabled = false;
     } else {
         pathDisplay.textContent =
-            "No folder selected — open Preferences to choose one.";
+            "No folder selected — choose or drop one.";
+        pathDisplay.removeAttribute("title");
         pathDisplay.classList.add("empty");
-        previewBtn.disabled = true;
-        runBtn.disabled = true;
+    }
+    previewBtn.disabled = isBusy || !directoryPath;
+    runBtn.disabled = isBusy || !directoryPath;
+    chooseBtn.disabled = isBusy;
+}
+
+function setBusy(value) {
+    isBusy = value;
+    render();
+}
+
+function showPathHint(message) {
+    pathHint.textContent = message;
+    pathHint.hidden = false;
+}
+
+function hidePathHint() {
+    pathHint.hidden = true;
+    pathHint.textContent = "";
+}
+
+/**
+ * Saves a chosen or dropped folder as the origin and clears the previous folder's results.
+ * @param {string} candidate - The folder path to save.
+ */
+async function applyDirectory(candidate) {
+    try {
+        const saved = await window.api.saveSettings({
+            directoryPath: candidate,
+        });
+        directoryPath = saved.directoryPath;
+        hidePathHint();
+        clearLog();
+        emptyState.textContent = "No folders processed yet.";
+        emptyState.style.display = "";
+        totalsEl.textContent = "";
+        render();
+    } catch (err) {
+        showPathHint(cleanIpcError(err.message));
     }
 }
 
@@ -63,8 +107,7 @@ function addLogRow(entry) {
 
 previewBtn.addEventListener("click", async () => {
     isPreviewMode = true;
-    previewBtn.disabled = true;
-    runBtn.disabled = true;
+    setBusy(true);
     previewBtn.textContent = "Previewing…";
     clearLog();
     emptyState.textContent = "Previewing…";
@@ -79,8 +122,7 @@ previewBtn.addEventListener("click", async () => {
         emptyState.textContent = "No preview yet.";
         totalsEl.textContent = `Failed: ${err.message}`;
     } finally {
-        previewBtn.disabled = !directoryPath;
-        runBtn.disabled = !directoryPath;
+        setBusy(false);
         previewBtn.textContent = "Preview";
     }
 });
@@ -92,8 +134,7 @@ runBtn.addEventListener("click", async () => {
     if (!confirmed) return;
 
     isPreviewMode = false;
-    runBtn.disabled = true;
-    previewBtn.disabled = true;
+    setBusy(true);
     runBtn.textContent = "Processing…";
     clearLog();
     emptyState.textContent = "Processing…";
@@ -108,21 +149,46 @@ runBtn.addEventListener("click", async () => {
         emptyState.textContent = "No folders processed yet.";
         totalsEl.textContent = `Failed: ${err.message}`;
     } finally {
-        runBtn.disabled = !directoryPath;
-        previewBtn.disabled = !directoryPath;
+        setBusy(false);
         runBtn.textContent = "Process Batch";
     }
 });
 
-settingsBtn.addEventListener("click", () => {
-    window.api.openSettings();
+chooseBtn.addEventListener("click", async () => {
+    const chosen = await window.api.chooseDirectory();
+    if (chosen) await applyDirectory(chosen);
+});
+
+configBtn.addEventListener("click", () => {
+    window.api.revealConfigFolder();
+});
+
+// Stops a drop outside the path display from navigating the window to the dropped file.
+document.addEventListener("dragover", (event) => event.preventDefault());
+document.addEventListener("drop", (event) => event.preventDefault());
+
+pathDisplay.addEventListener("dragover", () => {
+    if (!isBusy) pathDisplay.classList.add("drag-over");
+});
+
+pathDisplay.addEventListener("dragleave", () => {
+    pathDisplay.classList.remove("drag-over");
+});
+
+pathDisplay.addEventListener("drop", (event) => {
+    pathDisplay.classList.remove("drag-over");
+    if (isBusy) return;
+
+    const entry = event.dataTransfer.items[0]?.webkitGetAsEntry?.();
+    if (!entry?.isDirectory) {
+        showPathHint("Drop a folder, not a file.");
+        return;
+    }
+    applyDirectory(window.api.getPathForFile(event.dataTransfer.files[0]));
 });
 
 window.api.onRenameLog(addLogRow);
-window.api.onSettingsChanged((settings) => {
-    directoryPath = settings.directoryPath;
-    render();
-});
+window.api.onMenuChoose(() => chooseBtn.click());
 // Trigger the real buttons rather than duplicating their logic — this keeps
 // the disabled-state guard and confirm dialog working identically whether
 // the action comes from a click or the menu/keyboard shortcut.

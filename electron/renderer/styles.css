@@ -7,6 +7,7 @@
     --accent: #b8332a;
     --accent-hover: #9c2b23;
     --accent-fg: #fdfdfb;
+    --accent-soft: #f7e6e4;
     --ok: #2f6b3f;
 }
 
@@ -48,16 +49,57 @@ main {
     flex-shrink: 0;
 }
 
+.path-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+}
+
+.path-row:has(+ .path-hint:not([hidden])) {
+    margin-bottom: 0.4rem;
+}
+
 .path-display {
+    flex: 1;
+    min-width: 0;
     font-size: 0.85rem;
     padding: 0.55rem 0.65rem;
     border: 1.5px solid var(--fg);
     background: var(--field-bg);
-    margin-bottom: 1rem;
     min-height: 1.1rem;
-    max-height: 4.5rem;
-    overflow-y: auto;
-    word-break: break-all;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/*
+ * A long path is cut off at the start, so the folder name stays visible.
+ * The inner span keeps the path reading left to right, because direction: rtl would move the leading slash to the end.
+ */
+.path-display:not(.empty) {
+    direction: rtl;
+    text-align: left;
+}
+
+.path-text {
+    direction: ltr;
+    unicode-bidi: embed;
+    pointer-events: none;
+}
+
+/* Same border width as the resting state, so nothing shifts while dragging. */
+.path-display.drag-over {
+    border-style: dashed;
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.path-hint {
+    margin-bottom: 1rem;
+    color: var(--accent);
+    font-size: 0.78rem;
     flex-shrink: 0;
 }
 
@@ -68,16 +110,15 @@ main {
 
 .actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
     margin-bottom: 1rem;
     flex-shrink: 0;
 }
 
-.actions-end {
-    justify-content: flex-end;
-}
-
 .btn {
+    flex-shrink: 0;
+    white-space: nowrap;
     font-family: "Helvetica Neue Condensed", "Arial Narrow", sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -187,19 +228,4 @@ main {
     font-variant-numeric: tabular-nums;
     min-height: 1rem;
     flex-shrink: 0;
-}
-
-.footnote {
-    display: inline-block;
-    margin-top: 0.4rem;
-    font-size: 0.76rem;
-    color: var(--muted);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    flex-shrink: 0;
-}
-
-.footnote:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
 }
