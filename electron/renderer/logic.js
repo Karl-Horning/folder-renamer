@@ -3,7 +3,7 @@
  * rules are configured at all, rather than because folders are already clean.
  */
 export const NO_RULES_CONFIGURED_MESSAGE =
-    "No rename rules configured yet — click Reveal Config Folder to add some.";
+    "No rename rules configured yet. Click Reveal Config Folder to add some.";
 
 /** Message shown in the log area before anything has been processed. */
 export const NO_RESULTS_MESSAGE = "No folders processed yet.";
@@ -21,19 +21,19 @@ export const QUIT_WAITING_MESSAGE = "Finishing this batch, then quitting…";
 export function emptyStateMessage(renamed, errored, hasConfig = true) {
     if (renamed !== 0 || errored !== 0) return "";
     return hasConfig
-        ? "Nothing to rename — every folder already matches its target name."
+        ? "Nothing to rename. Every folder already matches its target name."
         : NO_RULES_CONFIGURED_MESSAGE;
 }
 
 /**
- * Formats a single rename-log entry as the text shown in its log row.
+ * Splits a rename-log entry into the two lines shown in its log row.
  * @param {{type: "ok" | "error", oldName: string, newName: string, message?: string}} entry - A rename-log entry.
- * @returns {string} The row's display text.
+ * @returns {{before: string, relation: string, after: string}} The old name, a word linking the two lines for screen readers, and the new name or error message.
  */
 export function formatLogEntry(entry) {
     return entry.type === "ok"
-        ? `${entry.oldName} → ${entry.newName}`
-        : `${entry.oldName} — ${entry.message}`;
+        ? { before: entry.oldName, relation: "becomes", after: entry.newName }
+        : { before: entry.oldName, relation: "failed:", after: entry.message };
 }
 
 /**
@@ -55,7 +55,7 @@ export function formatTotals(renamed, errored) {
 export function previewEmptyStateMessage(count, hasConfig = true) {
     if (count !== 0) return "";
     return hasConfig
-        ? "Nothing would change — every folder already matches its target name."
+        ? "Nothing would change. Every folder already matches its target name."
         : NO_RULES_CONFIGURED_MESSAGE;
 }
 
