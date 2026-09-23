@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld("api", {
     runRename: () => ipcRenderer.invoke("rename:run"),
     previewRename: () => ipcRenderer.invoke("rename:preview"),
 
+    setMenuState: (state) => ipcRenderer.send("menu:state", state),
+
     onRenameLog: (callback) => {
         const listener = (_event, entry) => callback(entry);
         ipcRenderer.on("rename:log", listener);

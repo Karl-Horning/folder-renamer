@@ -145,6 +145,25 @@ describe("Folder Renamer app (E2E)", () => {
         expect(runDisabled).toBe(true);
     });
 
+    it("enables the Preview and Process Batch menu items only once a folder is chosen", async () => {
+        scratchDir = await fs.mkdtemp(
+            path.join(os.tmpdir(), "folder-renamer-e2e-")
+        );
+        const mainPage = app.windows()[0];
+        const menuEnabled = () =>
+            app.evaluate(({ Menu }) => {
+                const menu = Menu.getApplicationMenu();
+                return ["choose", "preview", "run"].map(
+                    (id) => menu.getMenuItemById(id).enabled
+                );
+            });
+
+        expect(await menuEnabled()).toEqual([true, false, false]);
+
+        await chooseFolder(app, mainPage, scratchDir);
+        await expect.poll(menuEnabled).toEqual([true, true, true]);
+    });
+
     it("runs a full batch: choose a folder, then rename its contents", async () => {
         scratchDir = await fs.mkdtemp(
             path.join(os.tmpdir(), "folder-renamer-e2e-")

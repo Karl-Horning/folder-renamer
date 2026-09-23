@@ -16,16 +16,36 @@
                 >
                     Loading…
                 </div>
-                <button class="btn" id="choose-btn">Choose…</button>
+                <button class="btn" id="choose-btn" title="Choose folder (Cmd+O)">
+                    Choose…
+                </button>
             </div>
             <div class="path-hint" id="path-hint" role="alert" hidden></div>
 
             <div class="actions">
-                <button class="btn" id="preview-btn" disabled>Preview</button>
-                <button class="btn btn-primary" id="run-btn" disabled>
+                <button
+                    class="btn"
+                    id="preview-btn"
+                    title="Preview (Cmd+Shift+P)"
+                    disabled
+                >
+                    Preview
+                </button>
+                <button
+                    class="btn btn-primary"
+                    id="run-btn"
+                    title="Process Batch (Cmd+Return)"
+                    disabled
+                >
                     Process Batch
                 </button>
-                <button class="btn" id="config-btn">Reveal Config Folder</button>
+                <button
+                    class="btn"
+                    id="config-btn"
+                    title="Reveal Config Folder (Cmd+Shift+R)"
+                >
+                    Reveal Config Folder
+                </button>
             </div>
 
             <div class="log-table" id="log-table">
