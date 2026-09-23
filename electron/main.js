@@ -24,9 +24,7 @@ const REPO_URL = "https://github.com/Karl-Horning/folder-renamer";
 const BUNDLED_DATA_DIR = path.join(__dirname, "..", "src", "data");
 const PATTERN_FILES = ["prefixes.json", "removePatterns.json", "replacePatterns.json"];
 
-// electron-builder generates the packaged app's .icns from this same file at
-// build time — setting it here too means dev mode (`npm run electron`) shows
-// the real icon in the Dock instead of the default Electron icon.
+// electron-builder builds the packaged .icns from this file, and setting it here also shows the icon in the Dock in dev mode.
 const APP_ICON = path.join(__dirname, "..", "build", "icon.png");
 
 const store = new Store({
@@ -42,8 +40,7 @@ let mainWindow = null;
 let activeRenamePromise = null;
 
 /**
- * Resolves this app's userData data directory, seeding it from the bundled
- * defaults on first run — see seedDataDir for why that matters.
+ * Resolves the userData data directory, seeding it from the bundled defaults on first run.
  * @returns {Promise<string>} The resolved userData data directory.
  */
 async function seedUserData() {
@@ -204,8 +201,7 @@ ipcMain.handle("rename:run", async (event) => {
     }
 });
 
-// Read-only, so it doesn't touch activeRenamePromise/the quit guard —
-// there's nothing on disk a force-quit could interrupt mid-preview.
+// Read-only, so it skips activeRenamePromise and the quit guard.
 ipcMain.handle("rename:preview", async (event) => {
     const directoryPath = store.get("directoryPath");
     return runRenameJob(
@@ -236,16 +232,12 @@ app.on("window-all-closed", () => {
     if (!isMac) app.quit();
 });
 
-// Chromium can occasionally hang for several seconds on quit. This detached
-// watchdog guarantees termination regardless of what's stalling — safe
-// because electron-store writes synchronously, so nothing async is lost.
+// Chromium can hang for several seconds on quit, so a detached watchdog ends the process after two seconds. electron-store writes synchronously, so nothing is lost.
 let watchdogStarted = false;
 let quittingAfterRename = false;
 
 app.on("before-quit", (event) => {
-    // If a rename batch is still running, let it finish (up to a ceiling)
-    // instead of cutting it off mid-batch — quitting again afterward falls
-    // through to the watchdog below as normal.
+    // If a batch is running, wait for it up to a ceiling. The second quit falls through to the watchdog.
     if (activeRenamePromise && !quittingAfterRename) {
         event.preventDefault();
         quittingAfterRename = true;

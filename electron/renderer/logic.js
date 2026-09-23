@@ -1,6 +1,5 @@
 /**
- * Message shown when a run or preview found nothing to do because no rename
- * rules are configured at all, rather than because folders are already clean.
+ * Message shown when a run or preview found nothing to do because no rename rules are configured.
  */
 export const NO_RULES_CONFIGURED_MESSAGE =
     "No rename rules configured yet. Click Reveal Config Folder to add some.";
@@ -60,8 +59,8 @@ export function previewEmptyStateMessage(count, hasConfig = true) {
 }
 
 /**
- * Formats the totals line shown after a preview completes. Preview never predicts
- * errors, so there's no error count to show alongside it.
+ * Formats the totals line shown after a preview completes.
+ * A preview never predicts errors, so it has no error count.
  * @param {number} count - Folders that would be renamed.
  * @returns {string} The totals line's display text.
  */

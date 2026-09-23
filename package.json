@@ -26,7 +26,7 @@
     "test:watch": "vitest",
     "test:e2e": "vitest run --config vitest.e2e.config.js",
     "lint": "eslint .",
-    "format": "prettier --write \"electron/**/*.{js,cjs,css,html}\" \"src/**/*.js\" eslint.config.js vitest*.js"
+    "format": "prettier --write \"electron/**/*.{js,cjs,css,html}\" \"src/**/*.js\" \"*.js\""
   },
   "dependencies": {
     "dotenv": "^16.5.0",
@@ -38,9 +38,11 @@
     "electron-builder": "^26.15.3",
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
+    "fast-glob": "^3.3.3",
     "globals": "^17.12.0",
     "playwright-core": "^1.62.1",
     "prettier": "^3.9.9",
+    "prose-lint": "git+https://github.com/Karl-Horning/prose-lint.git",
     "vitest": "^3.2.7"
   },
   "build": {

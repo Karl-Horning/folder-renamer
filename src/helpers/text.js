@@ -5,8 +5,7 @@
  * - An image count in the form of `(x123)`
  * - A date in the ISO format `(YYYY-MM-DD)`
  *
- * If found, it removes them from their current location in the string and
- * appends them to the end in the order: image count, then date.
+ * If found, it removes them from their current location in the string and appends them to the end in the order: image count, then date.
  *
  * @param {string} name - The original folder name.
  * @returns {string} The modified folder name with count and date at the end.
@@ -56,8 +55,7 @@ function cleanupPunctuation(name) {
 }
 
 /**
- * Moves any specified prefix found at the start of the folder name
- * to the end of the name inside square brackets.
+ * Moves any specified prefix found at the start of the folder name to the end of the name inside square brackets.
  *
  * For example:
  * 'MyPhotos, Holidays, Holiday snaps' → 'Holidays, Holiday snaps [MyPhotos]'

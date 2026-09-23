@@ -15,11 +15,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+
+      # prose-lint is a private repo, and npm asks for its SSH URL regardless of package.json, so both URL forms are rewritten to use the token.
+      - name: Configure access to private dependencies
+        run: |
+          git config --global url."https://${{ secrets.PROSE_LINT_PAT }}@github.com/".insteadOf "https://github.com/"
+          git config --global --add url."https://${{ secrets.PROSE_LINT_PAT }}@github.com/".insteadOf "ssh://git@github.com/"
 
       - run: npm ci
 

@@ -2,12 +2,9 @@ import fs from "fs/promises";
 import path from "path";
 
 /**
- * Copies any of the given bundled default files into a data directory that aren't
- * already there, so future app updates never overwrite the user's real, evolving
- * pattern list — only files missing entirely get (re)seeded. This self-heals a
- * single file the user deletes later, not just the initial empty-directory case.
- * Falls back to an empty array for a file with no bundled default to copy from at
- * all, so the app can still launch rather than failing outright.
+ * Copies the bundled default files that are missing from a data directory, so app updates never overwrite the user's pattern list.
+ * A file the user deletes later is copied again on the next run.
+ * A file with no bundled default is created as an empty array, so the app still launches.
  * @param {string} dataDir - Destination directory (for example, inside userData).
  * @param {string} bundledDataDir - Source directory bundled with the app (for example, src/data).
  * @param {string[]} files - Filenames to copy from bundledDataDir into dataDir if missing.
@@ -30,10 +27,7 @@ export async function seedDataDir(dataDir, bundledDataDir, files) {
             try {
                 await fs.copyFile(path.join(bundledDataDir, file), path.join(dataDir, file));
             } catch {
-                // No bundled default to copy from — for example a dev-mode
-                // run on a fresh clone, where src/data/ is gitignored and
-                // empty. Start with an empty list rather than leaving the
-                // app unable to launch at all.
+                // No bundled default, for example in dev mode on a fresh clone where src/data/ is empty.
                 await fs.writeFile(path.join(dataDir, file), "[]");
             }
         }),

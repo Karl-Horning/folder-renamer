@@ -78,8 +78,7 @@ function normaliseDates(name) {
     });
 
     // 1c. Convert dotted full US-style dates (for example, 03.23.2022) → (2022-03-23)
-    // Skips dates already wrapped in brackets, for example (07.11.2019), since those
-    // are handled by rule 5 below using European (day-first) ordering.
+    // Skips dates already wrapped in brackets, for example (07.11.2019), which rule 5 below handles as day-first.
     name = name.replace(/(?<!\()\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b(?!\))/g, (_, m, d, y) => {
         return `(${y}-${pad(m)}-${pad(d)})`;
     });
@@ -94,8 +93,7 @@ function normaliseDates(name) {
     );
 
     // 3. Convert US-style hyphenated dates (for example, 10-19-2018) → (2018-10-19)
-    // Skips dates already wrapped in brackets, for example (12-07-2020), since those
-    // are handled by rule 4 below using European (day-first) ordering.
+    // Skips dates already wrapped in brackets, for example (12-07-2020), which rule 4 below handles as day-first.
     name = name.replace(/(?<!\()\b(\d{1,2})-(\d{1,2})-(\d{4})\b(?!\))/g, (_, m, d, y) => {
         return `(${y}-${pad(m)}-${pad(d)})`;
     });
