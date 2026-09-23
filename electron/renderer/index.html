@@ -12,7 +12,10 @@
                 <div
                     class="path-display"
                     id="path-display"
+                    role="textbox"
+                    aria-readonly="true"
                     aria-labelledby="path-label"
+                    tabindex="0"
                 >
                     Loading…
                 </div>
@@ -50,14 +53,26 @@
                 </button>
             </div>
 
-            <div class="log-table" id="log-table">
-                <div class="log-row head"><span>Item</span><span>Status</span></div>
+            <div
+                class="log-table"
+                id="log-table"
+                role="region"
+                aria-label="Results"
+                tabindex="0"
+            >
+                <div role="table" aria-label="Renamed folders" id="log-rows">
+                    <div class="log-row head" role="row">
+                        <span role="columnheader">Item</span>
+                        <span role="columnheader">Status</span>
+                    </div>
+                </div>
                 <div class="empty-state" id="empty-state">
                     No folders processed yet.
                 </div>
             </div>
 
             <div class="totals" id="totals"></div>
+            <div class="visually-hidden" id="announcer" role="status"></div>
         </main>
         <script type="module" src="index.js"></script>
     </body>

@@ -14,7 +14,7 @@ import {
 describe("emptyStateMessage", () => {
     it("says nothing needed to rename when there were zero renames and zero errors, and rules are configured", () => {
         expect(emptyStateMessage(0, 0, true)).toBe(
-            "Nothing to rename — every folder already matches its target name."
+            "Nothing to rename. Every folder already matches its target name."
         );
     });
 
@@ -24,7 +24,7 @@ describe("emptyStateMessage", () => {
 
     it("defaults to assuming rules are configured when hasConfig isn't passed", () => {
         expect(emptyStateMessage(0, 0)).toBe(
-            "Nothing to rename — every folder already matches its target name."
+            "Nothing to rename. Every folder already matches its target name."
         );
     });
 
@@ -38,17 +38,21 @@ describe("emptyStateMessage", () => {
 });
 
 describe("formatLogEntry", () => {
-    it("formats a successful rename as old → new", () => {
+    it("splits a successful rename into the old and new names", () => {
         expect(
             formatLogEntry({
                 type: "ok",
                 oldName: "Holiday Snaps (digital)",
                 newName: "Holiday Snaps",
             })
-        ).toBe("Holiday Snaps (digital) → Holiday Snaps");
+        ).toEqual({
+            before: "Holiday Snaps (digital)",
+            relation: "becomes",
+            after: "Holiday Snaps",
+        });
     });
 
-    it("formats an error as old — message", () => {
+    it("splits an error into the old name and the error message", () => {
         expect(
             formatLogEntry({
                 type: "error",
@@ -56,7 +60,11 @@ describe("formatLogEntry", () => {
                 newName: "Old Bundle",
                 message: "A file with that name already exists.",
             })
-        ).toBe("Old Bundle — A file with that name already exists.");
+        ).toEqual({
+            before: "Old Bundle",
+            relation: "failed:",
+            after: "A file with that name already exists.",
+        });
     });
 });
 
@@ -73,7 +81,7 @@ describe("formatTotals", () => {
 describe("previewEmptyStateMessage", () => {
     it("says nothing would change when the preview found zero renames, and rules are configured", () => {
         expect(previewEmptyStateMessage(0, true)).toBe(
-            "Nothing would change — every folder already matches its target name."
+            "Nothing would change. Every folder already matches its target name."
         );
     });
 
@@ -85,7 +93,7 @@ describe("previewEmptyStateMessage", () => {
 
     it("defaults to assuming rules are configured when hasConfig isn't passed", () => {
         expect(previewEmptyStateMessage(0)).toBe(
-            "Nothing would change — every folder already matches its target name."
+            "Nothing would change. Every folder already matches its target name."
         );
     });
 

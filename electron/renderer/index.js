@@ -18,8 +18,10 @@ const configBtn = document.getElementById("config-btn");
 const pathHint = document.getElementById("path-hint");
 const runError = document.getElementById("run-error");
 const logTable = document.getElementById("log-table");
+const logRows = document.getElementById("log-rows");
 const emptyState = document.getElementById("empty-state");
 const totalsEl = document.getElementById("totals");
+const announcer = document.getElementById("announcer");
 
 let directoryPath = "";
 let isPreviewMode = false;
@@ -38,7 +40,7 @@ function render() {
         pathDisplay.classList.remove("empty");
     } else {
         pathDisplay.textContent =
-            "No folder selected — choose or drop one.";
+            "No folder selected. Choose or drop one.";
         pathDisplay.removeAttribute("title");
         pathDisplay.classList.add("empty");
     }
@@ -106,8 +108,19 @@ function showEmptyState(message) {
     emptyState.style.display = message ? "" : "none";
 }
 
+/**
+ * Sets the text announced to screen readers, clearing it first so a repeated message is read again.
+ * @param {string} message - The text to announce.
+ */
+function announce(message) {
+    announcer.textContent = "";
+    setTimeout(() => {
+        announcer.textContent = message;
+    }, 50);
+}
+
 function clearLog() {
-    logTable
+    logRows
         .querySelectorAll(".log-row:not(.head)")
         .forEach((row) => row.remove());
 }
@@ -119,12 +132,30 @@ function addLogRow(entry) {
     row.className = `log-row ${entry.type === "ok" ? "ok" : "err"}${
         isPreviewMode ? " preview" : ""
     }`;
+    row.setAttribute("role", "row");
+
+    const { before, relation, after } = formatLogEntry(entry);
+
+    const beforeEl = document.createElement("span");
+    beforeEl.className = "before";
+    beforeEl.textContent = before;
+
+    const relationEl = document.createElement("span");
+    relationEl.className = "visually-hidden";
+    relationEl.textContent = relation;
+
+    const afterEl = document.createElement("span");
+    afterEl.className = "after";
+    afterEl.textContent = after;
 
     const item = document.createElement("span");
-    item.textContent = formatLogEntry(entry);
+    item.className = "names";
+    item.setAttribute("role", "cell");
+    item.append(beforeEl, relationEl, afterEl);
 
     const chip = document.createElement("span");
     chip.className = "chip";
+    chip.setAttribute("role", "cell");
     chip.textContent = isPreviewMode
         ? "PREVIEW"
         : entry.type === "ok"
@@ -132,7 +163,7 @@ function addLogRow(entry) {
           : "ERR";
 
     row.append(item, chip);
-    logTable.appendChild(row);
+    logRows.appendChild(row);
     logTable.scrollTop = logTable.scrollHeight;
 
     rowCount += 1;
@@ -166,6 +197,7 @@ async function runJob({ button, idleLabel, busyLabel, isPreview, start, summaris
         const { message, totals } = summarise(await start());
         showEmptyState(message);
         totalsEl.textContent = totals;
+        announce(message || totals);
     } catch (err) {
         showRunError(cleanIpcError(err.message));
         totalsEl.textContent = "";

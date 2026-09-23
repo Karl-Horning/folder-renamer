@@ -246,6 +246,39 @@ describe("Folder Renamer app (E2E)", () => {
         expect(await fs.readdir(scratchDir)).toEqual(["Sandman Vol 3"]);
     });
 
+    it("exposes the path, results and final status to assistive technology", async () => {
+        scratchDir = await fs.mkdtemp(
+            path.join(os.tmpdir(), "folder-renamer-e2e-")
+        );
+        await fs.mkdir(path.join(scratchDir, "Holiday Snaps (digital)"));
+
+        const mainPage = app.windows()[0];
+        await chooseFolder(app, mainPage, scratchDir);
+
+        await mainPage.getByRole("textbox", { name: "Origin" }).waitFor();
+
+        await mainPage.click("#preview-btn");
+        await expect
+            .poll(() => mainPage.textContent("#announcer"))
+            .toBe("Would rename 1 folder");
+
+        const table = mainPage.getByRole("table", { name: "Renamed folders" });
+        expect(await table.getByRole("row").count()).toBe(2);
+        expect(await table.locator(".before").textContent()).toBe(
+            "Holiday Snaps (digital)"
+        );
+        expect(await table.locator(".after").textContent()).toBe(
+            "Holiday Snaps"
+        );
+
+        const fontStyles = await mainPage.evaluate(() =>
+            ["path-display", "empty-state", "log-table"].map(
+                (id) => getComputedStyle(document.getElementById(id)).fontStyle
+            )
+        );
+        expect(fontStyles).toEqual(["normal", "normal", "normal"]);
+    });
+
     it("shows a clear error instead of crashing when a config file is missing", async () => {
         scratchDir = await fs.mkdtemp(
             path.join(os.tmpdir(), "folder-renamer-e2e-")
@@ -365,7 +398,7 @@ describe("Folder Renamer app (E2E)", () => {
                 () => document.getElementById("empty-state").textContent
             );
             expect(emptyStateText).toBe(
-                "No rename rules configured yet — click Reveal Config Folder to add some."
+                "No rename rules configured yet. Click Reveal Config Folder to add some."
             );
         } finally {
             for (const file of patternFiles) {
