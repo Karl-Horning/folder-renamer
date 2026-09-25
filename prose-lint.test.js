@@ -3,7 +3,13 @@ import { promises as fs } from "fs";
 import { describe, expect, it } from "vitest";
 import { findBannedWords, findWraps } from "prose-lint";
 
-const GLOBS = ["electron/**/*.{js,cjs,css,html}", "src/**/*.js", "*.js", "README.md"];
+const GLOBS = [
+    "electron/**/*.{js,cjs,css,html}",
+    "src/**/*.js",
+    "*.js",
+    "README.md",
+    "CHANGELOG.md",
+];
 
 /**
  * Lists the tracked source and doc files that the prose checks cover.
