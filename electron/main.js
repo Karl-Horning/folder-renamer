@@ -1,11 +1,12 @@
 import path from "path";
 import { spawn } from "child_process";
 import { createRequire } from "module";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import Store from "electron-store";
 
 import { runRenameJob } from "./lib/renameJob.js";
 import { assertDirectory } from "./lib/assertDirectory.js";
+import { isTrustedSender } from "./lib/isTrustedSender.js";
 import { seedDataDir } from "./lib/seedUserData.js";
 import { waitForActiveOperation } from "./lib/quitGuard.js";
 
@@ -20,6 +21,7 @@ const __dirname = path.dirname(__filename);
 
 const isMac = process.platform === "darwin";
 const REPO_URL = "https://github.com/Karl-Horning/folder-renamer";
+const RENDERER_URL_PREFIX = pathToFileURL(path.join(__dirname, "renderer") + path.sep).href;
 
 const BUNDLED_DATA_DIR = path.join(__dirname, "..", "src", "data");
 const PATTERN_FILES = ["prefixes.json", "removePatterns.json", "replacePatterns.json"];
@@ -63,8 +65,11 @@ function createMainWindow() {
             preload: path.join(__dirname, "preload.cjs"),
             contextIsolation: true,
             nodeIntegration: false,
+            sandbox: true,
         },
     });
+    mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+    mainWindow.webContents.on("will-navigate", (event) => event.preventDefault());
     mainWindow.loadFile(path.join(__dirname, "renderer", "index.html"));
     mainWindow.once("ready-to-show", () => mainWindow?.show());
     mainWindow.on("closed", () => {
@@ -152,16 +157,39 @@ function applyMenuState({ canChoose, canRun }) {
 
 // --- IPC handlers ---
 
-ipcMain.handle("settings:get", () => ({
+/**
+ * Registers an invoke handler that only answers pages from the renderer folder.
+ * @param {string} channel - The IPC channel name.
+ * @param {(event: object, ...args: any[]) => any} handler - The handler to run for trusted senders.
+ */
+function handle(channel, handler) {
+    ipcMain.handle(channel, (event, ...args) => {
+        if (!isTrustedSender(event, RENDERER_URL_PREFIX)) throw new Error("Untrusted sender.");
+        return handler(event, ...args);
+    });
+}
+
+/**
+ * Registers a one-way listener that only accepts messages from the renderer folder.
+ * @param {string} channel - The IPC channel name.
+ * @param {(event: object, ...args: any[]) => void} listener - The listener to run for trusted senders.
+ */
+function listen(channel, listener) {
+    ipcMain.on(channel, (event, ...args) => {
+        if (isTrustedSender(event, RENDERER_URL_PREFIX)) listener(event, ...args);
+    });
+}
+
+handle("settings:get", () => ({
     directoryPath: store.get("directoryPath"),
 }));
 
-ipcMain.handle("settings:save", async (_event, { directoryPath }) => {
-    store.set("directoryPath", await assertDirectory(directoryPath));
+handle("settings:save", async (_event, settings) => {
+    store.set("directoryPath", await assertDirectory(settings?.directoryPath));
     return { directoryPath: store.get("directoryPath") };
 });
 
-ipcMain.handle("dialog:chooseDirectory", async () => {
+handle("dialog:chooseDirectory", async () => {
     const result = await dialog.showOpenDialog(mainWindow ?? undefined, {
         defaultPath: store.get("directoryPath") || undefined,
         properties: ["openDirectory"],
@@ -170,13 +198,13 @@ ipcMain.handle("dialog:chooseDirectory", async () => {
     return result.filePaths[0];
 });
 
-ipcMain.on("menu:state", (_event, { canChoose, canRun }) => {
-    applyMenuState({ canChoose: Boolean(canChoose), canRun: Boolean(canRun) });
+listen("menu:state", (_event, state) => {
+    applyMenuState({ canChoose: Boolean(state?.canChoose), canRun: Boolean(state?.canRun) });
 });
 
-ipcMain.handle("config:reveal", revealConfigFolder);
+handle("config:reveal", revealConfigFolder);
 
-ipcMain.handle("run:confirm", async () => {
+handle("run:confirm", async () => {
     const directoryPath = store.get("directoryPath");
     const { response } = await dialog.showMessageBox(mainWindow ?? undefined, {
         type: "warning",
@@ -189,7 +217,9 @@ ipcMain.handle("run:confirm", async () => {
     return response === 0;
 });
 
-ipcMain.handle("rename:run", async (event) => {
+handle("rename:run", async (event) => {
+    if (activeRenamePromise) throw new Error("A batch is already running.");
+
     const directoryPath = store.get("directoryPath");
     activeRenamePromise = runRenameJob(directoryPath, userDataDir, (entry) =>
         event.sender.send("rename:log", entry),
@@ -202,7 +232,7 @@ ipcMain.handle("rename:run", async (event) => {
 });
 
 // Read-only, so it skips activeRenamePromise and the quit guard.
-ipcMain.handle("rename:preview", async (event) => {
+handle("rename:preview", async (event) => {
     const directoryPath = store.get("directoryPath");
     return runRenameJob(
         directoryPath,

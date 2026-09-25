@@ -51,7 +51,9 @@
     "files": [
       "src/**/*",
       "electron/**/*",
-      "package.json"
+      "package.json",
+      "!**/*.test.js",
+      "!electron/e2e/**"
     ],
     "directories": {
       "output": "dist"

@@ -235,6 +235,48 @@ describe("Folder Renamer app (E2E)", () => {
         expect(fontStyles).toEqual(["normal", "normal", "normal"]);
     });
 
+    it("blocks new windows, inline scripts and navigation in the main window", async () => {
+        const mainPage = app.windows()[0];
+        const startUrl = mainPage.url();
+
+        const opened = await mainPage.evaluate(() => window.open("about:blank"));
+        expect(opened).toBeNull();
+        expect(app.windows().length).toBe(1);
+
+        const inlineScriptRan = await mainPage.evaluate(() => {
+            const script = document.createElement("script");
+            script.textContent = "window.inlineScriptRan = true";
+            document.head.appendChild(script);
+            return window.inlineScriptRan === true;
+        });
+        expect(inlineScriptRan).toBe(false);
+
+        await mainPage.evaluate(() => {
+            window.location.href = "https://example.com/";
+        });
+        await sleep(300);
+        expect(mainPage.url()).toBe(startUrl);
+
+        // Playwright keeps waiting for the blocked navigation, so the reload lets later tests click again.
+        await mainPage.reload();
+    });
+
+    it("rejects IPC calls with malformed arguments without crashing the app", async () => {
+        const mainPage = app.windows()[0];
+
+        const rejection = await mainPage.evaluate(async () => {
+            try {
+                await window.api.saveSettings(undefined);
+                return null;
+            } catch (err) {
+                return err.message;
+            }
+        });
+        expect(rejection).toMatch(/No folder was provided\./);
+
+        expect(app.windows().length).toBe(1);
+    });
+
     it("shows a clear error instead of crashing when a config file is missing", async () => {
         scratchDir = await fs.mkdtemp(path.join(os.tmpdir(), "folder-renamer-e2e-"));
         await fs.mkdir(path.join(scratchDir, "Some Folder"));
